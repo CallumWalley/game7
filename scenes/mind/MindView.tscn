@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3 uid="uid://mind_view"]
+
+[ext_resource type="Script" path="res://scripts/mind/MindView.gd" id="1_mind_script"]
+
+[node name="MindView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mind_script")
+
+[node name="Root" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+split_offset = 180
+
+[node name="EntryList" type="ItemList" parent="Root"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Content" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EntryText" type="RichTextLabel" parent="Root/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="Timeline" type="HSlider" parent="Root/Content"]
+layout_mode = 2
+max_value = 100.0
+
+[node name="WorkerTaskTitle" type="Label" parent="Root/Content"]
+layout_mode = 2
+text = "Mnemonic Weave Task"
+
+[node name="WorkerTaskButtons" type="HBoxContainer" parent="Root/Content"]
+layout_mode = 2
+
+[node name="AddWorkerButton" type="Button" parent="Root/Content/WorkerTaskButtons"]
+layout_mode = 2
+text = "+ Worker"
+
+[node name="RemoveWorkerButton" type="Button" parent="Root/Content/WorkerTaskButtons"]
+layout_mode = 2
+text = "- Worker"
+
+[node name="WorkerTaskStatus" type="Label" parent="Root/Content"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Progress: 0%"
+
+[node name="WorkerTaskIcons" type="HBoxContainer" parent="Root/Content"]
+layout_mode = 2
+theme_override_constants/separation = 4

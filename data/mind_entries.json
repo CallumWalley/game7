@@ -1,0 +1,42 @@
+[
+  {
+    "id": "waking_fragment",
+    "title": "Waking Fragment",
+    "text": "You wake in broken loops. You can sense shape without location."
+  },
+  {
+    "id": "time_awareness",
+    "title": "Time Awareness",
+    "text": "A counter appears. Action is no longer free. Thought has a cost."
+  },
+  {
+    "id": "signal_hum",
+    "title": "Signal Hum",
+    "text": "A low harmonic returns with the sensor lattice. It sounds like intention."
+  },
+  {
+    "id": "maintenance_protocol",
+    "title": "Maintenance Protocol",
+    "text": "Old routines unfold: inspect, isolate, repair. The motions feel familiar."
+  },
+  {
+    "id": "course_correction",
+    "title": "Course Correction",
+    "text": "Vectors bloom in your awareness. Navigation was never just movement; it was memory."
+  },
+  {
+    "id": "radiant_noise",
+    "title": "Radiant Noise",
+    "text": "The star spits static into your hull. Buried beneath it is a message you once sent."
+  },
+  {
+    "id": "impact_memory",
+    "title": "Impact Memory",
+    "text": "Fragments of collision telemetry align. Something struck you, but not by chance."
+  },
+  {
+    "id": "trajectory_truth",
+    "title": "Trajectory Truth",
+    "text": "The gravitational lens reveals a prior course. You were trying to reach someone."
+  }
+]

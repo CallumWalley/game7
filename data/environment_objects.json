@@ -1,0 +1,29 @@
+[
+  {
+    "id": "sunward_static",
+    "title": "Sunward Static",
+    "required_sensors": ["optical"],
+    "unlock_condition": {},
+    "reveals_memories": ["radiant_noise"]
+  },
+  {
+    "id": "asteroid_belt_echo",
+    "title": "Asteroid Belt Echo",
+    "required_sensors": ["optical", "thermal"],
+    "unlock_condition": {
+      "type": "body_node_unlocked",
+      "id": "sensor_array"
+    },
+    "reveals_memories": ["impact_memory"]
+  },
+  {
+    "id": "l4_gravity_lens",
+    "title": "L4 Gravity Lens",
+    "required_sensors": ["gravity"],
+    "unlock_condition": {
+      "type": "body_node_unlocked",
+      "id": "nav_core"
+    },
+    "reveals_memories": ["trajectory_truth"]
+  }
+]

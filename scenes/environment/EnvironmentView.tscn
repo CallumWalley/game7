@@ -1,0 +1,120 @@
+[gd_scene format=3 uid="uid://c7fdr8o5ntjgv"]
+
+[ext_resource type="Script" uid="uid://tfynpo54whfx" path="res://scripts/environment/EnvironmentView.gd" id="1_env_script"]
+[ext_resource type="PackedScene" path="res://scenes/environment/EnvironmentMap.tscn" id="2_env_map"]
+[ext_resource type="PackedScene" path="res://scenes/common/HoverInfoCard.tscn" id="3_hover_card"]
+
+[node name="EnvironmentView" type="Control" unique_id=1621776152]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_env_script")
+
+[node name="Root" type="HSplitContainer" parent="." unique_id=548480847]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+split_offsets = PackedInt32Array(520)
+split_offset = 520
+
+[node name="MapArea" type="PanelContainer" parent="Root" unique_id=17089355]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Inset" type="MarginContainer" parent="Root/MapArea" unique_id=1034174092]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root/MapArea/Inset" unique_id=769304211]
+layout_mode = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Root/MapArea/Inset/VBox" unique_id=2013237688]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Root/MapArea/Inset/VBox/SubViewportContainer" unique_id=1672252376]
+handle_input_locally = false
+size = Vector2i(904, 632)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="Root/MapArea/Inset/VBox/SubViewportContainer/SubViewport" unique_id=1949488344]
+
+[node name="WorldRoot" parent="Root/MapArea/Inset/VBox/SubViewportContainer/SubViewport" unique_id=1435242905 instance=ExtResource("2_env_map")]
+
+[node name="Overlay" type="Control" parent="Root/MapArea" unique_id=51722965]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MapText" type="RichTextLabel" parent="Root/MapArea/Overlay" unique_id=773958606]
+layout_mode = 1
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 332.0
+offset_bottom = 172.0
+bbcode_enabled = true
+text = "Environment map placeholder"
+fit_content = true
+
+[node name="HoverCard" parent="Root/MapArea/Overlay" unique_id=2136292215 instance=ExtResource("3_hover_card")]
+
+[node name="Sidebar" type="VBoxContainer" parent="Root" unique_id=709259793]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+
+[node name="SensorsLabel" type="Label" parent="Root/Sidebar" unique_id=523781818]
+layout_mode = 2
+text = "Sensors"
+
+[node name="Sensors" type="VBoxContainer" parent="Root/Sidebar" unique_id=1040315920]
+layout_mode = 2
+
+[node name="OpticalToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=599920869]
+layout_mode = 2
+button_pressed = true
+text = "Optical"
+
+[node name="ThermalToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
+layout_mode = 2
+text = "Thermal"
+
+[node name="GravityToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1500829688]
+layout_mode = 2
+text = "Gravity"
+
+[node name="ObserveNextButton" type="Button" parent="Root/Sidebar" unique_id=757554105]
+layout_mode = 2
+text = "Observe Next Signal"
+
+[node name="WorkerTaskTitle" type="Label" parent="Root/Sidebar" unique_id=757554106]
+layout_mode = 2
+text = "Signal Decode Task"
+
+[node name="WorkerTaskButtons" type="HBoxContainer" parent="Root/Sidebar" unique_id=757554107]
+layout_mode = 2
+
+[node name="AddWorkerButton" type="Button" parent="Root/Sidebar/WorkerTaskButtons" unique_id=757554108]
+layout_mode = 2
+text = "+ Worker"
+
+[node name="RemoveWorkerButton" type="Button" parent="Root/Sidebar/WorkerTaskButtons" unique_id=757554109]
+layout_mode = 2
+text = "- Worker"
+
+[node name="WorkerTaskStatus" type="Label" parent="Root/Sidebar" unique_id=757554110]
+layout_mode = 2
+autowrap_mode = 3
+text = "Progress: 0%"
+
+[node name="WorkerTaskIcons" type="HBoxContainer" parent="Root/Sidebar" unique_id=757554111]
+layout_mode = 2
+theme_override_constants/separation = 4

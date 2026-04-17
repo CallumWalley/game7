@@ -1,0 +1,89 @@
+[gd_scene format=3 uid="uid://ua15ewyomabc"]
+
+[ext_resource type="Script" uid="uid://dkddhkxoq5b6" path="res://scripts/body/BodyView.gd" id="1_body_script"]
+[ext_resource type="PackedScene" uid="uid://2h2yfhheywb" path="res://scenes/body/BodyMap.tscn" id="2_body_map"]
+[ext_resource type="PackedScene" path="res://scenes/common/HoverInfoCard.tscn" id="3_hover_card"]
+[ext_resource type="Script" path="res://scripts/body/NerveClusterIcon.gd" id="4_icon_script"]
+
+[node name="BodyView" type="Control" unique_id=7637352]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_body_script")
+
+[node name="Frame" type="PanelContainer" parent="." unique_id=1415515971]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Inset" type="MarginContainer" parent="Frame" unique_id=1415515972]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Frame/Inset" unique_id=1415515973]
+layout_mode = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="Frame/Inset/VBox" unique_id=1295515971]
+layout_mode = 2
+size_flags_vertical = 3
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="Frame/Inset/VBox/SubViewportContainer" unique_id=1329106620]
+handle_input_locally = false
+physics_object_picking = true
+size = Vector2i(1136, 626)
+render_target_update_mode = 4
+
+[node name="Camera2D" type="Camera2D" parent="Frame/Inset/VBox/SubViewportContainer/SubViewport" unique_id=214295361]
+
+[node name="WorldRoot" parent="Frame/Inset/VBox/SubViewportContainer/SubViewport" unique_id=768705413 instance=ExtResource("2_body_map")]
+
+[node name="Overlay" type="Control" parent="." unique_id=1867845987]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VisionMask" type="ColorRect" parent="Overlay" unique_id=201010101]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="KeyPanel" type="HBoxContainer" parent="Overlay" unique_id=2079950173]
+layout_mode = 1
+offset_left = 10.0
+offset_top = 150.0
+offset_right = 160.0
+offset_bottom = 180.0
+theme_override_constants/separation = 6
+
+[node name="ClusterIcon" type="Control" parent="Overlay/KeyPanel" unique_id=300000001]
+layout_mode = 2
+custom_minimum_size = Vector2(24, 24)
+script = ExtResource("4_icon_script")
+
+[node name="CountLabel" type="Label" parent="Overlay/KeyPanel" unique_id=1756214011]
+layout_mode = 2
+vertical_alignment = 1
+text = "0"
+
+[node name="HoveredCard" parent="Overlay" unique_id=1170703900 instance=ExtResource("3_hover_card")]

@@ -1,0 +1,151 @@
+[gd_scene format=3 uid="uid://2h2yfhheywb"]
+
+[ext_resource type="Script" uid="uid://biqeyfqtdhsxj" path="res://scripts/body/BodyMap.gd" id="0_map_script"]
+[ext_resource type="Script" uid="uid://dywibu7ia12xk" path="res://scripts/body/GridDraw.gd" id="1_grid"]
+[ext_resource type="Script" uid="uid://brhmthpuvrdw" path="res://scripts/body/LinksLayer.gd" id="2_links"]
+[ext_resource type="PackedScene" path="res://scenes/body/NerveCluster.tscn" id="3_cluster"]
+[ext_resource type="PackedScene" path="res://scenes/body/PhotosyntheticTissue.tscn" id="4_component"]
+
+[node name="BodyMap" type="Node2D" unique_id=1217959338]
+modulate = Color(0.22476482, 0.25271052, 0.21969578, 1)
+script = ExtResource("0_map_script")
+
+[node name="GridDraw" type="Node2D" parent="." unique_id=1280857487]
+z_index = -10
+script = ExtResource("1_grid")
+
+[node name="ShipPolygon" type="Polygon2D" parent="." unique_id=444385328]
+z_index = -9
+position = Vector2(985.99994, -931)
+scale = Vector2(1.429396, 1.3749472)
+color = Color(0.1, 0.12, 0.18, 0.35)
+polygon = PackedVector2Array(-834, -134, -357, -464, -200, -150, 0, -148, 200, -135, 380, -90, 500, -40, 510, 0, 500, 40, 380, 90, 200, 135, 0, 148, 1247.3882, 315.67004, 1179.1528, 929.78845, 1133.6624, 1564.1249, 241.94437, 543.31146, 47.572693, 517.1108, -48.97159, 328.0126, -196.58655, 162.9154, -356.09448, 72.00281, 0, 0, 0, 0, 0, 0, 0, 0, 1333.3142, 1971.0099, 1093.2266, 1940.683, 923.90186, 1897.7201, 630.74243, 1505.9984, 519.54395, 1799.1578, 304.729, 1619.724, 82.33203, 1685.4323, -92.04724, 1781.4672, -534.3136, 1771.3583, -847.6909, 1728.3951, -842.6365, 1599.5062, -1305.1207, 1265.911, -1439.0642, 1114.2767, -1560.0996, 768.7569, -1535.0992, 409.17773, -1090.3057, 141.29065)
+
+[node name="LinksLayer" type="Node2D" parent="." unique_id=281050413]
+script = ExtResource("2_links")
+
+[node name="ClustersRoot" type="Node2D" parent="." unique_id=242809395]
+
+[node name="west" type="Node2D" parent="ClustersRoot" unique_id=174689129]
+position = Vector2(-900, -190)
+
+[node name="PhotosyntheticTissueWest" parent="ClustersRoot/west" unique_id=1894247787 instance=ExtResource("4_component")]
+position = Vector2(-186, -20)
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterA4")])
+
+[node name="ClusterA4" parent="ClustersRoot/west" unique_id=880803771 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-46, 227)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
+startNode = null
+is_enabled = false
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterC"), NodePath("../ClusterD2"), NodePath("../ClusterA10"), NodePath("../ClusterA8")])
+
+[node name="ClusterA10" parent="ClustersRoot/west" unique_id=1504634673 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-165, 292)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD2"), NodePath("../ClusterA4"), NodePath("../ClusterA8")])
+
+[node name="ClusterA8" parent="ClustersRoot/west" unique_id=1752173926 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-179.99998, 195)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../ClusterA10"), NodePath("../ClusterA4")])
+
+[node name="ClusterC" parent="ClustersRoot/west" unique_id=393521372 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(71, 300)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../../wake/clusterc_01"), NodePath("../ClusterA4")])
+
+[node name="ClusterD" parent="ClustersRoot/west" unique_id=986552001 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(63.000015, 143)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterC")])
+
+[node name="ClusterD2" parent="ClustersRoot/west" unique_id=605298744 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-63, 353)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterA10"), NodePath("../ClusterC")])
+
+[node name="wake" type="Node2D" parent="ClustersRoot" unique_id=952270788]
+
+[node name="PhotosyntheticTissueWake" parent="ClustersRoot/wake" unique_id=150127034 instance=ExtResource("4_component")]
+position = Vector2(-231, -7)
+linked_node_paths = Array[NodePath]([NodePath("../clustera8_01"), NodePath("../clusterc_01")])
+
+[node name="clustera4_01" parent="ClustersRoot/wake" unique_id=165029725 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-73, 96)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
+startNode = null
+is_enabled = false
+linked_node_paths = Array[NodePath]([NodePath("../clusterd_01"), NodePath("../clustera8_01"), NodePath("../clusterc_01")])
+
+[node name="clustera10_01" parent="ClustersRoot/wake" unique_id=923590395 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-169, 314)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera8_01"), NodePath("../clusterc_01")])
+
+[node name="clustera8_01" parent="ClustersRoot/wake" unique_id=1646653295 instance=ExtResource("3_cluster")]
+z_index = 3
+position = Vector2(-53, 235)
+scale = Vector2(1.1314286, 1.1314286)
+glucose = 90.0
+controlling_entity = 1
+node_tint = Color(0.20312428, 1.7712116e-05, 0.81139004, 0)
+startNode = true
+linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera10_01"), NodePath("../clusterc_01"), NodePath("../clustera4_01"), NodePath("../clusterd_01")])
+
+[node name="clusterc_01" parent="ClustersRoot/wake" unique_id=1530225967 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(-187, 150)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera4_01"), NodePath("../../west/ClusterC"), NodePath("../clustera8_01")])
+
+[node name="clusterd_01" parent="ClustersRoot/wake" unique_id=882039810 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(54, 81)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../clustera4_01"), NodePath("../clustera8_01")])
+
+[node name="clusterd2_01" parent="ClustersRoot/wake" unique_id=3591920 instance=ExtResource("3_cluster")]
+z_index = 2
+position = Vector2(59, 294)
+scale = Vector2(0.88857144, 0.88857144)
+glucose = 40.0
+node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
+startNode = null
+linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera8_01")])

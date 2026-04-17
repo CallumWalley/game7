@@ -1,0 +1,18 @@
+[
+  {
+    "id": "fracture_echo",
+    "title": "Fracture Echo",
+    "node_id": "sensor_array",
+    "trigger_cycle": 18,
+    "required_memory": "impact_memory",
+    "description": "A hostile cognitive shard hijacks sensor interpretation until impact memory is integrated."
+  },
+  {
+    "id": "navigation_schism",
+    "title": "Navigation Schism",
+    "node_id": "nav_core",
+    "trigger_cycle": 55,
+    "required_memory": "trajectory_truth",
+    "description": "A rival fragment rewrites navigation priorities and locks your vector model."
+  }
+]
