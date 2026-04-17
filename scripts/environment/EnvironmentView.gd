@@ -10,7 +10,6 @@ const UI_BLOCKER_GRACE_PX: float = 52.0
 @onready var thermal_toggle: CheckBox = $Root/Sidebar/Sensors/ThermalToggle
 @onready var gravity_toggle: CheckBox = $Root/Sidebar/Sensors/GravityToggle
 @onready var observe_button: Button = $Root/Sidebar/ObserveNextButton
-@onready var map_text: RichTextLabel = $Root/MapArea/Overlay/MapText
 @onready var overlay: Control = $Root/MapArea/Overlay
 @onready var hover_card: HoverInfoCard = $Root/MapArea/Overlay/HoverCard
 @onready var viewport_container: SubViewportContainer = $Root/MapArea/Inset/VBox/SubViewportContainer
@@ -112,7 +111,6 @@ func _refresh() -> void:
 	if object_lines.is_empty():
 		object_lines.append("- No objects available with current sensors")
 
-	map_text.text = "[b]Environment Placeholder[/b]\nPan: middle mouse or screen edge\nZoom: mouse wheel\n\nActive sensor layers:\n- %s\n\nVisible signals:\n%s" % [sensor_text, "\n".join(object_lines)]
 	optical_toggle.button_pressed = GameState.unlocked_sensors.has("optical")
 	thermal_toggle.button_pressed = GameState.unlocked_sensors.has("thermal")
 	gravity_toggle.button_pressed = GameState.unlocked_sensors.has("gravity")

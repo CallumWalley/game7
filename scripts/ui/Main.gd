@@ -1,22 +1,22 @@
 extends Control
 
-@onready var _mind_panel: Control    = $ViewStack/MindPanel
-@onready var _body_panel: Control    = $ViewStack/BodyPanel
-@onready var _env_panel: Control     = $ViewStack/EnvironmentPanel
-@onready var _mind_btn: Button       = $BottomBar/HBox/MindButton
-@onready var _body_btn: Button       = $BottomBar/HBox/BodyButton
-@onready var _env_btn: Button        = $BottomBar/HBox/EnvironmentButton
-@onready var cycle_label: Label      = $TopOverlay/HBox/CycleLabel
-@onready var resource_label: Label   = $TopOverlay/HBox/ResourceLabel
-@onready var system_menu: MenuButton = $TopOverlay/HBox/SystemMenu
-@onready var pause_button: Button    = $TopOverlay/HBox/TimeControls/PauseButton
-@onready var next_button: Button     = $TopOverlay/HBox/TimeControls/NextButton
-@onready var speed_1_button: Button  = $TopOverlay/HBox/TimeControls/Speed1Button
-@onready var speed_10_button: Button = $TopOverlay/HBox/TimeControls/Speed10Button
-@onready var speed_100_button: Button = $TopOverlay/HBox/TimeControls/Speed100Button
-@onready var neuron_count_label: Label = $GlobalKeyPanel/Margin/Rows/NeuronRow/Count
-@onready var arithmetic_count_label: Label = $GlobalKeyPanel/Margin/Rows/ArithmeticRow/Count
-@onready var quantum_count_label: Label = $GlobalKeyPanel/Margin/Rows/QuantumRow/Count
+@onready var _mind_panel: Control    = $VBox/ContentArea/ViewStack/MindPanel
+@onready var _body_panel: Control    = $VBox/ContentArea/ViewStack/BodyPanel
+@onready var _env_panel: Control     = $VBox/ContentArea/ViewStack/EnvironmentPanel
+@onready var _mind_btn: Button       = $VBox/BottomBar/HBox/MindButton
+@onready var _body_btn: Button       = $VBox/BottomBar/HBox/BodyButton
+@onready var _env_btn: Button        = $VBox/BottomBar/HBox/EnvironmentButton
+@onready var cycle_label: Label      = $VBox/TopBar/Margin/HBox/CycleLabel
+@onready var resource_label: Label   = $VBox/TopBar/Margin/HBox/ResourceLabel
+@onready var system_menu: MenuButton = $VBox/TopBar/Margin/HBox/SystemMenu
+@onready var pause_button: Button    = $VBox/TopBar/Margin/HBox/TimeControls/PauseButton
+@onready var next_button: Button     = $VBox/TopBar/Margin/HBox/TimeControls/NextButton
+@onready var speed_1_button: Button  = $VBox/TopBar/Margin/HBox/TimeControls/Speed1Button
+@onready var speed_10_button: Button = $VBox/TopBar/Margin/HBox/TimeControls/Speed10Button
+@onready var speed_100_button: Button = $VBox/TopBar/Margin/HBox/TimeControls/Speed100Button
+@onready var neuron_count_label: Label = $VBox/TopBar/Margin/HBox/KeyStrip/NeuronGroup/Count
+@onready var arithmetic_count_label: Label = $VBox/TopBar/Margin/HBox/KeyStrip/ArithmeticGroup/Count
+@onready var quantum_count_label: Label = $VBox/TopBar/Margin/HBox/KeyStrip/QuantumGroup/Count
 
 var _panels: Array
 var _buttons: Array

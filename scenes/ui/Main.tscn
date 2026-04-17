@@ -9,7 +9,7 @@
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_nav"]
 
-[node name="Main" type="Control" unique_id=855599498]
+[node name="Main" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -19,103 +19,158 @@ grow_vertical = 2
 theme = ExtResource("5_theme")
 script = ExtResource("1_main")
 
-[node name="ViewStack" type="Control" parent="." unique_id=100000001]
+[node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MindPanel" parent="ViewStack" unique_id=1404824639 instance=ExtResource("2_mind")]
-visible = false
-layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="BodyPanel" parent="ViewStack" unique_id=214242550 instance=ExtResource("3_body")]
-layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="EnvironmentPanel" parent="ViewStack" unique_id=1461962348 instance=ExtResource("4_env")]
-visible = false
-layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="TopOverlay" type="PanelContainer" parent="." unique_id=100000006]
-layout_mode = 1
-anchor_right = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-grow_horizontal = 2
-
-[node name="HBox" type="HBoxContainer" parent="TopOverlay" unique_id=100000007]
+[node name="TopBar" type="PanelContainer" parent="VBox"]
 layout_mode = 2
 
-[node name="SystemMenu" type="MenuButton" parent="TopOverlay/HBox" unique_id=1344694664]
+[node name="Margin" type="MarginContainer" parent="VBox/TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="VBox/TopBar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SystemMenu" type="MenuButton" parent="VBox/TopBar/Margin/HBox"]
 layout_mode = 2
 text = "Menu"
 
-[node name="ResourceLabel" type="Label" parent="TopOverlay/HBox" unique_id=396146345]
+[node name="ResourceLabel" type="Label" parent="VBox/TopBar/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Food 0.0 | -0.0/tick"
 
-[node name="TimeControls" type="HBoxContainer" parent="TopOverlay/HBox" unique_id=1873894506]
+[node name="KeyStrip" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox"]
 layout_mode = 2
+theme_override_constants/separation = 16
 
-[node name="PauseButton" type="Button" parent="TopOverlay/HBox/TimeControls" unique_id=2135672067]
+[node name="NeuronGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/KeyStrip"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/NeuronGroup"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+script = ExtResource("6_type_icon")
+
+[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/KeyStrip/NeuronGroup"]
+layout_mode = 2
+text = "0/0"
+
+[node name="ArithmeticGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/KeyStrip"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/ArithmeticGroup"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+script = ExtResource("6_type_icon")
+node_type = "arithmetic_processor"
+
+[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/KeyStrip/ArithmeticGroup"]
+layout_mode = 2
+text = "0/0"
+
+[node name="QuantumGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/KeyStrip"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/QuantumGroup"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+script = ExtResource("6_type_icon")
+node_type = "quantum_calculator"
+
+[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/KeyStrip/QuantumGroup"]
+layout_mode = 2
+text = "0/0"
+
+[node name="TimeControls" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PauseButton" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
 layout_mode = 2
 text = "Pause"
 
-[node name="NextButton" type="Button" parent="TopOverlay/HBox/TimeControls" unique_id=561871492]
+[node name="NextButton" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
 layout_mode = 2
 text = "Next"
 
-[node name="Speed1Button" type="Button" parent="TopOverlay/HBox/TimeControls" unique_id=1916967265]
+[node name="Speed1Button" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
 layout_mode = 2
 text = "1x"
 
-[node name="Speed10Button" type="Button" parent="TopOverlay/HBox/TimeControls" unique_id=699275795]
+[node name="Speed10Button" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
 layout_mode = 2
 text = "10x"
 
-[node name="Speed100Button" type="Button" parent="TopOverlay/HBox/TimeControls" unique_id=699275796]
+[node name="Speed100Button" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
 layout_mode = 2
 text = "100x"
 
-[node name="CycleLabel" type="Label" parent="TopOverlay/HBox" unique_id=920309713]
+[node name="CycleLabel" type="Label" parent="VBox/TopBar/Margin/HBox"]
 layout_mode = 2
 text = "Cycle 0"
 
-[node name="BottomBar" type="PanelContainer" parent="." unique_id=100000002]
+[node name="ContentArea" type="Control" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ViewStack" type="Control" parent="VBox/ContentArea"]
 layout_mode = 1
-anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -52.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
 
-[node name="HBox" type="HBoxContainer" parent="BottomBar" unique_id=100000008]
+[node name="MindPanel" parent="VBox/ContentArea/ViewStack" instance=ExtResource("2_mind")]
+visible = false
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BodyPanel" parent="VBox/ContentArea/ViewStack" instance=ExtResource("3_body")]
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EnvironmentPanel" parent="VBox/ContentArea/ViewStack" instance=ExtResource("4_env")]
+visible = false
+layout_mode = 1
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BottomBar" type="PanelContainer" parent="VBox"]
 layout_mode = 2
 
-[node name="MindButton" type="Button" parent="BottomBar/HBox" unique_id=100000003]
+[node name="HBox" type="HBoxContainer" parent="VBox/BottomBar"]
+layout_mode = 2
+
+[node name="MindButton" type="Button" parent="VBox/BottomBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Mind"
 toggle_mode = true
 button_group = SubResource("ButtonGroup_nav")
 
-[node name="BodyButton" type="Button" parent="BottomBar/HBox" unique_id=100000004]
+[node name="BodyButton" type="Button" parent="VBox/BottomBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Body"
@@ -123,80 +178,9 @@ toggle_mode = true
 button_pressed = true
 button_group = SubResource("ButtonGroup_nav")
 
-[node name="EnvironmentButton" type="Button" parent="BottomBar/HBox" unique_id=100000005]
+[node name="EnvironmentButton" type="Button" parent="VBox/BottomBar/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Environment"
 toggle_mode = true
 button_group = SubResource("ButtonGroup_nav")
-
-[node name="GlobalKeyPanel" type="PanelContainer" parent="." unique_id=210000001]
-layout_mode = 1
-offset_left = 8.0
-offset_top = 72.0
-offset_right = 250.0
-offset_bottom = 210.0
-
-[node name="Margin" type="MarginContainer" parent="GlobalKeyPanel" unique_id=210000002]
-layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="Rows" type="VBoxContainer" parent="GlobalKeyPanel/Margin" unique_id=210000003]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="NeuronRow" type="HBoxContainer" parent="GlobalKeyPanel/Margin/Rows" unique_id=210000004]
-layout_mode = 2
-
-[node name="Icon" type="Control" parent="GlobalKeyPanel/Margin/Rows/NeuronRow" unique_id=210000005]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-script = ExtResource("6_type_icon")
-
-[node name="Label" type="Label" parent="GlobalKeyPanel/Margin/Rows/NeuronRow" unique_id=210000006]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "NeuronCluster"
-
-[node name="Count" type="Label" parent="GlobalKeyPanel/Margin/Rows/NeuronRow" unique_id=210000007]
-layout_mode = 2
-text = "0 / 0"
-
-[node name="ArithmeticRow" type="HBoxContainer" parent="GlobalKeyPanel/Margin/Rows" unique_id=210000008]
-layout_mode = 2
-
-[node name="Icon" type="Control" parent="GlobalKeyPanel/Margin/Rows/ArithmeticRow" unique_id=210000009]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-script = ExtResource("6_type_icon")
-node_type = "arithmetic_processor"
-
-[node name="Label" type="Label" parent="GlobalKeyPanel/Margin/Rows/ArithmeticRow" unique_id=210000010]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "ArithmeticProcessor"
-
-[node name="Count" type="Label" parent="GlobalKeyPanel/Margin/Rows/ArithmeticRow" unique_id=210000011]
-layout_mode = 2
-text = "0 / 0"
-
-[node name="QuantumRow" type="HBoxContainer" parent="GlobalKeyPanel/Margin/Rows" unique_id=210000012]
-layout_mode = 2
-
-[node name="Icon" type="Control" parent="GlobalKeyPanel/Margin/Rows/QuantumRow" unique_id=210000013]
-custom_minimum_size = Vector2(20, 20)
-layout_mode = 2
-script = ExtResource("6_type_icon")
-node_type = "quantum_calculator"
-
-[node name="Label" type="Label" parent="GlobalKeyPanel/Margin/Rows/QuantumRow" unique_id=210000014]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "QuantumCalculator"
-
-[node name="Count" type="Label" parent="GlobalKeyPanel/Margin/Rows/QuantumRow" unique_id=210000015]
-layout_mode = 2
-text = "0 / 0"

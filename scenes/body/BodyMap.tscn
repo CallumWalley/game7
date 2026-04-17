@@ -40,7 +40,6 @@ scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
 is_enabled = false
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterC"), NodePath("../ClusterD2"), NodePath("../ClusterA10"), NodePath("../ClusterA8")])
 
 [node name="ClusterA10" parent="ClustersRoot/west" unique_id=1504634673 instance=ExtResource("3_cluster")]
@@ -49,7 +48,6 @@ position = Vector2(-165, 292)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD2"), NodePath("../ClusterA4"), NodePath("../ClusterA8")])
 
 [node name="ClusterA8" parent="ClustersRoot/west" unique_id=1752173926 instance=ExtResource("3_cluster")]
@@ -58,7 +56,6 @@ position = Vector2(-179.99998, 195)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA10"), NodePath("../ClusterA4")])
 
 [node name="ClusterC" parent="ClustersRoot/west" unique_id=393521372 instance=ExtResource("3_cluster")]
@@ -67,7 +64,6 @@ position = Vector2(71, 300)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../../wake/clusterc_01"), NodePath("../ClusterA4")])
 
 [node name="ClusterD" parent="ClustersRoot/west" unique_id=986552001 instance=ExtResource("3_cluster")]
@@ -76,7 +72,6 @@ position = Vector2(63.000015, 143)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterC")])
 
 [node name="ClusterD2" parent="ClustersRoot/west" unique_id=605298744 instance=ExtResource("3_cluster")]
@@ -85,7 +80,6 @@ position = Vector2(-63, 353)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterA10"), NodePath("../ClusterC")])
 
 [node name="wake" type="Node2D" parent="ClustersRoot" unique_id=952270788]
@@ -101,7 +95,7 @@ scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
 is_enabled = false
-resistance = null
+resistance = -0.285
 linked_node_paths = Array[NodePath]([NodePath("../clusterd_01"), NodePath("../clustera8_01"), NodePath("../clusterc_01")])
 
 [node name="clustera10_01" parent="ClustersRoot/wake" unique_id=923590395 instance=ExtResource("3_cluster")]
@@ -110,7 +104,7 @@ position = Vector2(-169, 314)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-resistance = null
+resistance = -0.6
 linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera8_01"), NodePath("../clusterc_01")])
 
 [node name="clustera8_01" parent="ClustersRoot/wake" unique_id=1646653295 instance=ExtResource("3_cluster")]
@@ -121,7 +115,6 @@ glucose = 90.0
 controlling_entity = 1
 node_tint = Color(0.20312428, 1.7712116e-05, 0.81139004, 0)
 startNode = true
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera10_01"), NodePath("../clusterc_01"), NodePath("../clustera4_01"), NodePath("../clusterd_01")])
 
 [node name="clusterc_01" parent="ClustersRoot/wake" unique_id=1530225967 instance=ExtResource("3_cluster")]
@@ -130,7 +123,7 @@ position = Vector2(-187, 150)
 scale = Vector2(1.1314286, 1.1314286)
 glucose = 90.0
 node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
-resistance = null
+resistance = -0.02
 linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera4_01"), NodePath("../../west/ClusterC"), NodePath("../clustera8_01")])
 
 [node name="clusterd_01" parent="ClustersRoot/wake" unique_id=882039810 instance=ExtResource("3_cluster")]
@@ -139,7 +132,6 @@ position = Vector2(54, 81)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-resistance = null
 linked_node_paths = Array[NodePath]([NodePath("../clustera4_01"), NodePath("../clustera8_01")])
 
 [node name="clusterd2_01" parent="ClustersRoot/wake" unique_id=3591920 instance=ExtResource("3_cluster")]
@@ -148,5 +140,5 @@ position = Vector2(59, 294)
 scale = Vector2(0.88857144, 0.88857144)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-resistance = null
+resistance = -0.505
 linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera8_01")])
