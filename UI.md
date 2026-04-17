@@ -93,3 +93,14 @@ Purpose: external awareness and sensor-gated interactions.
 - Keep tuning values script-exposed.
 - Keep terminology and input language consistent across tabs.
 - Reuse shared worker icon/marker helpers to avoid visual drift.
+
+lets try some basic memory progression.
+
+For the 'photosyntheic tissue, lets try the following. (this should be implimented in a way so it can be repeated easily for other components).
+
+state 0: entry is hidden.
+state 1: Triggered by mousing over component for the first time. Reveals entry for component.
+small amount of descriptive text. Title set to short description and image (copy polygon from scene in /scenes/body). We can try add a variable here, as a reminder the typewriter effect should run up to the variable then stop, until player picks an option from a dropdown. at which point the typewriter continues.
+state 2: Trriggered when capturing component. reveals proper name, and describes what it actually does, how many nodes it needs (approx). Includes a tally of how many the player controls, and what that effect gets them. In some cases it is an explicit teired, but in this case each one controlled just adds a flat resource.
+
+There will be lots of these mind entries, so can you try make the implimentation relatively easy to add entries, and as much as possible use existing information (ssot). please ask questions as required. Update documents as needed (should be fully detailed). Make sure IMPLEMENTATION_GAPS.md is up to date.

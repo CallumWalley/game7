@@ -1,5 +1,5 @@
 @tool
-extends "res://scripts/body/GeometricNode.gd"
+extends "res://scripts/body/ThoughtNode.gd"
 
 ## Quantum calculation node. Equilateral triangle shape (pointing up).
 ## Placeholder: represents high-level probabilistic/quantum computation.
@@ -11,10 +11,10 @@ func _build_shape_polygon() -> PackedVector2Array:
 	var r := RADIUS
 	var half_rt3 := r * sqrt(3.0) / 2.0
 	return PackedVector2Array([
-		Vector2(0.0, -r),
-		Vector2(half_rt3, r * 0.5),
-		Vector2(-half_rt3, r * 0.5),
-	])
+Vector2(0.0, -r),
+Vector2(half_rt3, r * 0.5),
+Vector2(-half_rt3, r * 0.5),
+])
 
 
 func get_worker_node_type() -> String:

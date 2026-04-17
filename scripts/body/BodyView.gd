@@ -16,6 +16,7 @@ const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
 @export var debug_show_hover_stats: bool = true
 
 var _hovered_cluster: Node = null
+var _hovered_component: Node = null
 var _suppress_status_popup_once: Dictionary = {}
 var _known_cluster_statuses: Dictionary = {}
 var _hover_card_hide_timer: float = -1.0
@@ -53,11 +54,15 @@ func _ready() -> void:
 	for component in _get_all_components():
 		if component.has_signal("clicked"):
 			component.clicked.connect(_on_component_clicked)
+		if component.has_signal("hovered"):
+			component.hovered.connect(_on_component_hovered)
+		if component.has_signal("unhovered"):
+			component.unhovered.connect(_on_component_unhovered)
 	_refresh_key()
 
 
 func _on_map_process(delta: float) -> void:
-	if _hovered_cluster == null and _hover_card_hide_timer >= 0.0:
+	if _hovered_cluster == null and _hovered_component == null and _hover_card_hide_timer >= 0.0:
 		_hover_card_hide_timer -= delta
 		if _hover_card_hide_timer <= 0.0:
 			_hide_card(_hovered_card)
@@ -87,6 +92,7 @@ func _is_edge_scroll_enabled() -> bool:
 
 
 func _on_cluster_hovered(cluster) -> void:
+	_hovered_component = null
 	_hovered_cluster = cluster
 	_hover_card_hide_timer = -1.0
 	_update_info()
@@ -94,6 +100,18 @@ func _on_cluster_hovered(cluster) -> void:
 
 func _on_cluster_unhovered() -> void:
 	_hovered_cluster = null
+	_hover_card_hide_timer = HOVER_CARD_HIDE_DELAY
+
+
+func _on_component_hovered(component) -> void:
+	_hovered_cluster = null
+	_hovered_component = component
+	_hover_card_hide_timer = -1.0
+	_update_info()
+
+
+func _on_component_unhovered(_component) -> void:
+	_hovered_component = null
 	_hover_card_hide_timer = HOVER_CARD_HIDE_DELAY
 
 
@@ -135,7 +153,7 @@ func _on_component_clicked(component: Node, button_index: int) -> void:
 
 
 func _update_info() -> void:
-	if not is_instance_valid(_hovered_cluster):
+	if not is_instance_valid(_hovered_cluster) and not is_instance_valid(_hovered_component):
 		if _hover_card_hide_timer < 0.0:
 			_hide_card(_hovered_card)
 		return
@@ -203,6 +221,28 @@ func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
 		details
 	)
 	card.visible = true
+
+
+func _set_component_card_content(card: HoverInfoCard, component: Node) -> void:
+	if not is_instance_valid(component):
+		_hide_card(card)
+		return
+	var title := str(component.get("component_label"))
+	if title.strip_edges() == "":
+		title = str(component.name)
+	var target_id: String = str(component.call("get_worker_target_id"))
+	var workers: Dictionary = GameState.get_target_workers(target_id)
+	var current_power: float = GameState.get_target_total_power(target_id)
+	var required_power := float(component.get("required_power"))
+	var connected := bool(component.call("is_connected_to_player_node"))
+	var details := "Workers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
+	details += "\nPower: %.2f / %.2f" % [current_power, required_power]
+	details += "\nConnected: %s" % ("yes" if connected else "no")
+	details += "\nActive: %s" % ("yes" if bool(component.get("is_activated")) else "no")
+	card.set_content(title, details)
+	card.visible = true
+
+
 func _assign_concept_name_if_needed(cluster: Node) -> void:
 	if not is_instance_valid(cluster):
 		return
@@ -222,6 +262,8 @@ func _update_cards_position() -> void:
 func _refresh_cards_content() -> void:
 	if is_instance_valid(_hovered_cluster):
 		_set_card_content(_hovered_card, _hovered_cluster)
+	elif is_instance_valid(_hovered_component):
+		_set_component_card_content(_hovered_card, _hovered_component)
 	else:
 		_hide_card(_hovered_card)
 

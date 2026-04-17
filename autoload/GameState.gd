@@ -516,11 +516,11 @@ func get_capture_progress_for_link(path_a: String, path_b: String) -> float:
 	for target in worker_targets.values():
 		if str(target.get("kind", "")) != "capture_node":
 			continue
-		var source_path := str(target.get("source_node_path", ""))
 		var target_path := str(target.get("target_node_path", ""))
-		if (source_path == path_a and target_path == path_b) or (source_path == path_b and target_path == path_a):
-			var goal := maxf(float(target.get("progress_goal", capture_progress_goal)), 0.01)
-			return clampf(float(target.get("progress", 0.0)) / goal, 0.0, 1.0)
+		if not ((target_path == path_a and _is_player_owned_node_path(path_b)) or (target_path == path_b and _is_player_owned_node_path(path_a))):
+			continue
+		var goal := maxf(float(target.get("progress_goal", capture_progress_goal)), 0.01)
+		return clampf(float(target.get("progress", 0.0)) / goal, 0.0, 1.0)
 	return 0.0
 
 
@@ -528,11 +528,19 @@ func get_capture_workers_for_link(path_a: String, path_b: String) -> Dictionary:
 	for target in worker_targets.values():
 		if str(target.get("kind", "")) != "capture_node":
 			continue
-		var source_path := str(target.get("source_node_path", ""))
 		var target_path := str(target.get("target_node_path", ""))
-		if (source_path == path_a and target_path == path_b) or (source_path == path_b and target_path == path_a):
+		if (target_path == path_a and _is_player_owned_node_path(path_b)) or (target_path == path_b and _is_player_owned_node_path(path_a)):
 			return target.get("workers", _empty_workers_dict())
 	return _empty_workers_dict()
+
+
+func _is_player_owned_node_path(path: String) -> bool:
+	if path == "":
+		return false
+	var node := get_node_or_null(NodePath(path))
+	if node == null:
+		return false
+	return int(node.get("controlling_entity")) == ENTITY_PLAYER
 
 
 func _find_player_source_path_for_capture(target_node: Node) -> String:

@@ -22,12 +22,16 @@ var is_activated: bool = false
 
 signal clicked(component, button_index: int)
 signal activation_changed(active: bool)
+signal hovered(component)
+signal unhovered(component)
 
 
 func _ready() -> void:
 	_setup_shape()
 	add_to_group("worker_components")
 	_hover_area.input_event.connect(_on_input_event)
+	_hover_area.mouse_entered.connect(func() -> void: hovered.emit(self))
+	_hover_area.mouse_exited.connect(func() -> void: unhovered.emit(self))
 	GameState.ensure_component_target(self)
 	GameState.state_changed.connect(_refresh_worker_markers)
 	_update_visual_state()
