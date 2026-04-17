@@ -142,6 +142,6 @@ func _update_hover_card() -> void:
 			WORKER_DISPLAY_UTILS.format_worker_mix(GameState.get_target_workers(ENV_TASK_ID)),
 			GameState.get_target_total_power(ENV_TASK_ID),
 		],
-		Vector2(14, 14),
+		Vector2(-220, 14),
 		6.0
 	)

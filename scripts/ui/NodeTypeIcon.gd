@@ -3,9 +3,9 @@ extends Control
 const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
 
 @export var node_type: String = "neuron_cluster"
-@export var fill_color: Color = Color(0.92, 0.94, 0.98, 0.95)
-@export var stroke_color: Color = Color(0.12, 0.14, 0.18, 0.95)
-@export var stroke_width: float = 2.0
+@export var fill_color: Color = WORKER_DISPLAY_UTILS.ICON_FILL_COLOR
+@export var stroke_color: Color = WORKER_DISPLAY_UTILS.ICON_STROKE_COLOR
+@export var stroke_width: float = WORKER_DISPLAY_UTILS.ICON_STROKE_WIDTH
 
 
 func _draw() -> void:

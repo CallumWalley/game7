@@ -10,10 +10,8 @@ const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
 @onready var _camera: Camera2D                         = $Frame/Inset/VBox/SubViewportContainer/SubViewport/Camera2D
 @onready var _clusters_root: Node2D                   = $Frame/Inset/VBox/SubViewportContainer/SubViewport/WorldRoot/ClustersRoot
 @onready var _overlay: Control                        = $Overlay
-@onready var _key_label: Label  = $Overlay/KeyPanel/CountLabel
 @onready var _hovered_card: HoverInfoCard = $Overlay/HoveredCard
 @onready var _vision_mask: ColorRect = $Overlay/VisionMask
-@onready var _key_panel: Control = $Overlay/KeyPanel
 
 @export var debug_show_hover_stats: bool = true
 
@@ -22,8 +20,7 @@ var _suppress_status_popup_once: Dictionary = {}
 var _known_cluster_statuses: Dictionary = {}
 var _hover_card_hide_timer: float = -1.0
 const HOVER_CARD_HIDE_DELAY: float = 0.18
-const HOVER_CARD_MOUSE_OFFSET: Vector2 = Vector2(16.0, 14.0)
-const STARVING_GLUCOSE_THRESHOLD: float = 60.0
+const HOVER_CARD_MOUSE_OFFSET: Vector2 = Vector2(-220.0, 14.0)
 const PAN_BOUNDS_PADDING: float = 420.0
 const VISION_RADIUS_WORLD: float = 280.0
 const VISION_FEATHER_WORLD: float = 300.0
@@ -56,7 +53,6 @@ func _ready() -> void:
 	for component in _get_all_components():
 		if component.has_signal("clicked"):
 			component.clicked.connect(_on_component_clicked)
-	GameState.state_changed.connect(_refresh_key)
 	_refresh_key()
 
 
@@ -147,12 +143,8 @@ func _update_info() -> void:
 
 
 func _refresh_key() -> void:
-	var counts := GameState.get_node_type_counts()
-	var total_idle := 0
-	for node_type in GameState.NODE_TYPE_ORDER:
-		var row: Dictionary = counts.get(node_type, {})
-		total_idle += int(row.get("idle", 0))
-	_key_label.text = "%d" % total_idle
+	# Body-local key was removed; global key in Main is now authoritative.
+	pass
 
 
 func _get_all_clusters() -> Array:
@@ -380,8 +372,6 @@ func _get_pan_bounds_rect() -> Rect2:
 
 func _is_mouse_over_ui_blocker() -> bool:
 	var mouse_global := get_global_mouse_position()
-	if _expand_rect(_key_panel.get_global_rect(), UI_BLOCKER_GRACE_PX).has_point(mouse_global):
-		return true
 	if _expand_rect(_vision_mask.get_global_rect(), UI_BLOCKER_GRACE_PX).has_point(mouse_global):
 		return true
 	if _hovered_card.visible and _expand_rect(_hovered_card.get_global_rect(), UI_BLOCKER_GRACE_PX).has_point(mouse_global):

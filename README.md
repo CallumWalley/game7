@@ -1,29 +1,40 @@
-# Awakening Vessel - Godot Skeleton
+# Awakening Vessel
 
-This is a Godot 4 starter skeleton based on the design document.
+Godot 4 prototype for a narrative systems game about rebuilding cognition and control.
 
-## Design docs
+## Project docs
 
-- `DESIGN.md`: core loop and systems priorities.
-- `UI.md`: interface structure and interaction notes.
-- `story.md`: narrative premise, arc, and story direction.
-- `OBJECT_STRUCTURE.md`: scene/script ownership and class/data model details.
+- `DESIGN.md`: game design intent, mechanics, and priorities.
+- `UI.md`: UX layout, interaction language, and presentation rules.
+- `OBJECT_STRUCTURE.md`: runtime architecture, class ownership, and data flow.
+- `STORY.md`: narrative direction and tonal guidance.
+- `IMPLEMENTATION_GAPS.md`: contradictions, missing pieces, and implementation proposals.
 
-## Current loop scaffold
+## Current implemented slice
 
-1. Body unlock actions spend cycles and unlock capabilities.
-2. Environment sensor interactions spend cycles and reveal observations.
-3. Mind entries unlock progressively and consume reflection cycles.
-4. Fragment conflicts can contest unlocked body nodes and block further progression until resolved.
+- Shared `GameState` across Mind/Body/Environment tabs.
+- Cycle simulation with food economy and per-node glucose.
+- Worker-placement system with typed workers:
+	- `NeuronCluster` (circle)
+	- `ArithmeticProcessor` (square)
+	- `QuantumCalculator` (triangle)
+- Capture tasks on unowned nodes with resistance and link-based progress visualization.
+- Placeholder component (`PhotosyntheticTissue`) with worker assignment and food output when activated.
+- Global left-side key showing idle/total by worker type in all views.
+- Mind entries from JSON plus dynamic runtime entries unlocked on first control of node/component types.
 
 ## Run
 
-1. Open the `project` folder in Godot 4.
-2. Ensure autoload entries are present (`GameState`, `TimeSystem`, `EventBus`, `ProgressionSystem`, `ObservationSystem`, `FragmentConflictSystem`).
-3. Run the main scene: `res://scenes/ui/Main.tscn`.
+1. Open this repository root in Godot 4.
+2. Verify autoloads exist:
+	 - `GameState`
+	 - `TimeSystem`
+	 - `EventBus`
+	 - `ProgressionSystem`
+	 - `ObservationSystem`
+	 - `FragmentConflictSystem`
+3. Run `res://scenes/ui/Main.tscn`.
 
-## Next implementation passes
+## Status note
 
-- Replace placeholders with graph map scenes for body and environment.
-- Add unlock conditions and scripted act gates.
-- Convert mind entries to richer data resources and link graph.
+This repo is intentionally hybrid: core worker/capture loop is implemented, while several narrative and progression systems are still placeholder-level. See `IMPLEMENTATION_GAPS.md` for the exact delta.

@@ -102,7 +102,7 @@ func _refresh_worker_markers() -> void:
 		Vector2(96.0, -38.0),
 		Vector2(18.0, 0.0),
 		0.62,
-		Color(0.96, 0.96, 0.96, 0.95),
+		WORKER_DISPLAY_UTILS.ICON_FILL_COLOR,
 		7.0,
 		18
 	)

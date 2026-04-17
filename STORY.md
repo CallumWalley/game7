@@ -7,7 +7,7 @@ You are a sentient spaceship consciousness waking after a traumatic rupture, wit
 - Awareness is minimal.
 - Memory is fragmented.
 - Environmental understanding is partial.
-- Sense of agency returns in small, controlled steps.
+- Sense of agency returns in small, controlled steps across cycles.
 
 ## Intro direction (deferred)
 Potential onboarding sequence:

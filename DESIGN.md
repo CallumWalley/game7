@@ -4,26 +4,28 @@
 Narrative exploration game where the player is a sentient vessel rebuilding identity, capability, and context after trauma.
 
 ## Document map
-- Core architecture and object relationships: OBJECT_STRUCTURE.md
-- User interface and interaction notes: UI.md
-- Narrative and story structure: story.md
+- Core architecture and object relationships: `OBJECT_STRUCTURE.md`
+- User interface and interaction notes: `UI.md`
+- Narrative and story structure: `STORY.md`
+- Open implementation issues and proposals: `IMPLEMENTATION_GAPS.md`
 
 ## Shared terminology
 - Cycle: one simulation step. Use "cycle" in docs (not "tick").
-- Body node: an interactable unit on the body map. Current concrete class: NerveCluster.
-- Controlling entity: ownership identifier for a body node. "player" is the player entity.
+- Body node: an interactable unit on the body map.
+- Controlling entity: ownership identifier for a body node.
 - Fragment: a non-player mind entity that can contest body-node control.
-- Food vs glucose: food is the global resource pool; glucose is per-node energy.
+- Food vs glucose: food is global resource supply; glucose is per-node energy.
+- Resistance: per-node conversion resistance used by capture tasks.
 
 ## Core gameplay loop
 1. Reclaim body systems and restore node networks.
-2. Restored systems unlock new sensing and actions in the environment.
+2. Restored systems unlock sensing and actions in Environment.
 3. Environmental observations trigger memory recovery.
 4. Recovered memories unlock further body regions and progression gates.
 
-## Systems design priorities
+## Systems priorities
 - One shared state model across tabs.
-- Body, Environment, and Mind are perspectives on the same state.
+- Body, Environment, and Mind are different views over the same simulation state.
 - Time progression is explicit and player-readable.
 - Resource pressure creates meaningful prioritization.
 
@@ -32,86 +34,83 @@ Narrative exploration game where the player is a sentient vessel rebuilding iden
 ### Resources
 - Primary resource: food.
 - Player-controlled active body nodes consume food each cycle.
-- Node performance scales with glucose level.
+- Node output scales with glucose.
 - Nodes below coma threshold are treated as disabled until restored.
-- Time controls adjust tick size (not update frequency).
-- Expected baseline start speed: 1x.
-- Number of controlled nodes of each type is also a tracked resource (shown as idle/total on left).
+- Time controls adjust cycle size, not update frequency.
+- Baseline starting speed: `1x`.
+- Idle/total worker counts by node type are shown in a global left key.
 
-### Workers/Nodes
+### Workers and node types
+Nodes are a worker-placement pool.
 
-Your nodes funtion as a worker placement mechanic. Left clicking assigns another node, right click removes it. Nodes can be assigned to components and Tasks.
-Components require a certain amount of thought-power to function, nodes need to be assigned until that threshold is passed. Nodes assigned to a component stay there until removed.
-Tasks have a certain amount of work that needs to be done, the more nodes assigned the faster it will be done. On completion, nodes are returned to idle pool.
-There are various types of nodes (currently NeuronCluster, ArithmeticProcessor, and QuantumCalculator), components and tasks have a 'prefered' node type and non prefered nodes get a malus to the power they contribute. When adding a node to a task or component the prefered type will be added if available, otherwise the node type with the most idle nodes will be used. Removing a node is this logic revesed (i.e remove least numerous non preffered first and preffered last).
+- Left click assigns a worker (when valid).
+- Right click removes a worker (when valid).
+- Workers can be assigned to tasks and components.
 
-Number of idle nodes and total nodes per type are displayed in a key on the left hand side of the UI. (Circle, square and triangle for NeuronCluster, ArithmeticProcessor, and QuantumCalculator).
-This should be visible in all views.
+Current worker node types:
+- `NeuronCluster` (circle)
+- `ArithmeticProcessor` (square)
+- `QuantumCalculator` (triangle)
 
-### Tasks
+Each task/component has a preferred node type.
 
-Converting or capturing another node is considered a task.
-To capture a node it must be connected to an owned node.
-Left / right clicking on an unowned node will add/remove nodes working on this task. 
-A number of symbols (same as in key) are arranged near the link between your node and the node being captuted to show your assigned nodes.
+- Preferred type contributes full power.
+- Non-preferred type contributes with multiplier penalty.
+- Assignment priority:
+	1. preferred type if idle exists
+	2. otherwise type with highest idle count
+- Removal priority:
+	1. least numerous non-preferred first
+	2. preferred last
 
-Nodes have a resistance to being converted, and amount that is subtracted from the player progress to convert.
+### Tasks (capture)
+Capturing an unowned node is a task.
 
-Progress is shown by coloring the link player colors.
+- Capture can only start when target is connected to a player-owned node.
+- Left/right click on unowned node adds/removes assigned workers.
+- Assigned worker symbols appear on the source-target link.
+- Link color indicates capture progress.
+- Resistance is subtracted from worker power each cycle.
+- If no workers remain, capture progress decays over time.
 
 ### Components
+Components are `BodyObject` instances with worker targets.
 
-Components are objects on the map that inherit from body object. Can be mostly placeholder for now.
-Require a certain amount of thought-power to function. Assigned node symbols are shown next to.
-Left Clicking adds nodes right removed.
+- Require thought-power to activate.
+- Assigned worker symbols appear near the component.
+- Left/right click adds/removes workers.
+- Components must be connected to player-owned nodes to receive workers.
 
-some components have various levels based on how many of that component are controlled.
+Current placeholder component:
+- `PhotosyntheticTissue`
+	- activation threshold: `1.0` power
+	- when active: `+1` food per cycle
 
-e.g. 
+## Node states and behavior roadmap
+The following are design goals and are not fully implemented yet:
 
-Level 0 [0 sensors]: nothing
-Level 1 [1 sensors]: enable UI element.
-Level 2 [4+ sensors]: enable another thing.
+- Multi-level neural energy states (`sleep`, `normal`, `boost`).
+- Stress accumulation/reduction and burnout behavior.
+- Personality-modified capture resistance curves.
+- Fragment-specific node contest behavior.
 
-Reaching a level for the first time unlocks it, and makes the memory 'unread'
-Unlocked levels and it's effects are shown in the memory for this component type.
-Current level is shown.
+See `IMPLEMENTATION_GAPS.md` for implementation proposals.
 
+## Memories (mind layer)
+Mind view contains memory entries.
 
+- Entries may be unlocked by game conditions.
+- Runtime entries are added when node/component types are first controlled.
+- Planned extensions: unread/highlight state, staged updates, typewriter reveal, tags, filters, and timeline-linked entries.
 
-## Fail condtionS
-- Black out from too many G'S (continuing to increaSe rotation).
+## Failure condition (planned)
+- Blackout from excessive G-load while unresolved rotation continues.
 
-## Current implementation directives
-- Keep tunable values script-exposed for fast iteration.
+## Implementation directives
+- Keep tunables script-exposed for iteration.
 - Keep pan/zoom constrained to playable space.
-- Vision outside controlled influence should fade toward black.
-- Deactivated or starving nodes should not count toward key overlays.
-- Visual transitions should interpolate smoothly between states.
+- Fade vision outside controlled influence toward black.
+- Keep visual transitions interpolated (avoid hard snapping).
 
-## Memories
-
-Mind panel contains a list of 'memories'
-
-Memories can be text and contain images. And may be unlocked in stages.
-Unread memories will be highlighted.
-When memories are read for the first time the text will appear with a typewriter effect (come in word at a time, mimic patter of thinking it through).
-
-Other memories can have links that will take you to that entry when clicked.
-
-Occasionally you will be prompted to select a word, is persistant and stored in the player data. 
-
-And can be referenced elsewhere. e.g. `The radar signatures are ["a threat", "friends", "not important"]`. This value may be used later to determine different behavior.
-
-Titles and text content can be updated, in which case a memory will become unread again, and show typewriter effect again.
-
-Memories can be triggered by various game conditions.
-
-Memories that have a time attached are selectable on the timeline.
-
-Memories can have tags.
-
-Filter by tags.
-
-## Complexity guardrails
-When a proposed feature is disproportionately expensive relative to current milestone goals, prefer a simpler placeholder and document the tradeoff.
+## Complexity guardrail
+When a feature is disproportionately expensive for current milestone goals, implement a simpler placeholder and document the tradeoff.

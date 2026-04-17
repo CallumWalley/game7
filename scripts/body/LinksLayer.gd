@@ -206,7 +206,7 @@ func _refresh_capture_markers(path_a: String, path_b: String, pos_a: Vector2, po
 		start,
 		Vector2(18.0, 0.0),
 		0.58,
-		Color(0.96, 0.97, 1.0, 0.95),
+		WORKER_DISPLAY_UTILS.ICON_FILL_COLOR,
 		8.0,
 		18
 	)
