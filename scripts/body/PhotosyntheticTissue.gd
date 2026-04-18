@@ -1,11 +1,9 @@
 @tool
 extends "res://scripts/body/BodyObject.gd"
 
-const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
-const WORKER_WORLD_MARKERS := preload("res://scripts/ui/WorkerWorldMarkers.gd")
-
 ## Placeholder component: produces food when sufficiently powered by assigned workers.
 
+@export var component_type_id: String = "photosynthetic_tissue"
 @export var preferred_node_type: String = "neuron_cluster"
 @export var non_preferred_multiplier: float = 0.3
 @export var required_power: float = 1.0
@@ -16,7 +14,6 @@ const WORKER_WORLD_MARKERS := preload("res://scripts/ui/WorkerWorldMarkers.gd")
 @onready var _outline: Line2D = $Outline
 @onready var _hover_area: Area2D = $HoverArea
 @onready var _collision: CollisionPolygon2D = $HoverArea/CollisionPolygon
-@onready var _marker_root: Node2D = $WorkerMarkers
 
 var is_activated: bool = false
 
@@ -33,9 +30,11 @@ func _ready() -> void:
 	_hover_area.mouse_entered.connect(func() -> void: hovered.emit(self))
 	_hover_area.mouse_exited.connect(func() -> void: unhovered.emit(self))
 	GameState.ensure_component_target(self)
-	GameState.state_changed.connect(_refresh_worker_markers)
+	GameState.register_component_properties(component_type_id, {
+		"required_power": required_power,
+		"food_output_per_cycle": food_output_per_cycle,
+	})
 	_update_visual_state()
-	_refresh_worker_markers()
 
 
 func _setup_shape() -> void:
@@ -96,20 +95,6 @@ func _update_visual_state() -> void:
 		_polygon.color = Color(0.26, 0.55, 0.28, 0.58)
 	else:
 		_polygon.color = Color(0.12, 0.17, 0.13, 0.42)
-
-
-func _refresh_worker_markers() -> void:
-	var workers := GameState.get_target_workers(get_worker_target_id())
-	WORKER_WORLD_MARKERS.populate_from_workers(
-		_marker_root,
-		workers,
-		Vector2(96.0, -38.0),
-		Vector2(18.0, 0.0),
-		0.62,
-		WORKER_DISPLAY_UTILS.ICON_FILL_COLOR,
-		7.0,
-		18
-	)
 
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:

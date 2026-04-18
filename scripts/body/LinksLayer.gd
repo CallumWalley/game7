@@ -11,8 +11,6 @@ extends Node2D
 @export_range(0.0, 4.0, 0.05) var capture_width_per_worker: float = 1.25
 
 const LINK_SHADER := preload("res://shaders/body_link.gdshader")
-const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
-const WORKER_WORLD_MARKERS := preload("res://scripts/ui/WorkerWorldMarkers.gd")
 const LINE_WIDTH: float = 6.0
 const LINE_CAPTURE_PULSE_AMPLITUDE: float = 1.2
 const LINE_CAPTURE_PULSE_SPEED: float = 2.6
@@ -27,7 +25,6 @@ const WAVE_SPEED: float = 1.2
 
 var _clusters_root: Node2D
 var _link_lines: Dictionary = {}
-var _link_markers: Dictionary = {}
 var _time: float = 0.0
 
 
@@ -47,10 +44,7 @@ func _process(delta: float) -> void:
 func _rebuild_lines() -> void:
 	for line in _link_lines.values():
 		line.queue_free()
-	for marker_root in _link_markers.values():
-		marker_root.queue_free()
 	_link_lines.clear()
-	_link_markers.clear()
 	for cluster in _get_all_clusters():
 		var nc = cluster
 		for linked in nc.get_linked_clusters():
@@ -59,10 +53,6 @@ func _rebuild_lines() -> void:
 				continue
 			var line := _create_link_line()
 			_link_lines[key] = line
-			var marker_root := Node2D.new()
-			marker_root.z_index = line.z_index + 1
-			add_child(marker_root)
-			_link_markers[key] = marker_root
 
 
 func _refresh_lines(delta: float) -> void:
@@ -160,13 +150,6 @@ func _apply_link_state(line: Line2D, a, b, delta: float) -> void:
 	var smooth_visible := lerpf(current_visible, target_visible, lerp_speed)
 	shader_material.set_shader_parameter("visibility_alpha", smooth_visible)
 	line.visible = smooth_visible > 0.01
-	_refresh_capture_markers(
-		path_a,
-		path_b,
-		pos_a,
-		pos_b,
-		_link_markers.get(_pair_key(path_a, path_b))
-	)
 
 
 func _smooth_pulse(phase: float) -> float:
@@ -255,32 +238,6 @@ func _pair_key(id_a: String, id_b: String) -> String:
 	if id_a < id_b:
 		return id_a + "|" + id_b
 	return id_b + "|" + id_a
-
-
-func _refresh_capture_markers(path_a: String, path_b: String, pos_a: Vector2, pos_b: Vector2, marker_root: Node2D) -> void:
-	if marker_root == null:
-		return
-	var workers := GameState.get_capture_workers_for_link(path_a, path_b)
-	var marker_types := WORKER_DISPLAY_UTILS.ordered_worker_types(workers)
-	if marker_types.is_empty():
-		WORKER_WORLD_MARKERS.clear_markers(marker_root)
-		return
-	var midpoint := pos_a.lerp(pos_b, 0.5)
-	var dir := pos_b - pos_a
-	var normal := Vector2.ZERO
-	if dir.length_squared() > 0.001:
-		normal = dir.normalized().orthogonal()
-	var start := midpoint + normal * 22.0 - Vector2(float(marker_types.size() - 1) * 9.0, 0.0)
-	WORKER_WORLD_MARKERS.populate_from_workers(
-		marker_root,
-		workers,
-		start,
-		Vector2(18.0, 0.0),
-		0.58,
-		WORKER_DISPLAY_UTILS.ICON_FILL_COLOR,
-		8.0,
-		18
-	)
 
 
 func _capture_worker_count(path_a: String, path_b: String) -> int:

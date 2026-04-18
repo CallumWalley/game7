@@ -1,0 +1,41 @@
+[
+  {
+    "component_type_id": "photosynthetic_tissue",
+    "mind_entry_id": "component_photosynthetic_tissue",
+    "polygon_verts": [[-76, -48], [68, -54], [84, 34], [-60, 58]],
+    "fill_color": [0.26, 0.55, 0.28, 0.58],
+    "outline_color": [1.0, 1.0, 1.0, 0.95],
+    "states": [
+      {
+        "state": 1,
+        "title": "Unknown Membrane",
+        "text_segments": [
+          {
+            "type": "text",
+            "content": "A dense section of hull surface, tiled at a microscopic scale. No mechanical parts. No networking substrate. But it faces the star."
+          },
+          {
+            "type": "variable",
+            "key": "tissue_initial_impression",
+            "prompt": "It reminds you of:",
+            "options": ["a leaf", "solar film", "biological skin", "something with no analogue"]
+          },
+          {
+            "type": "text",
+            "content": "\n\nNot yet under your control."
+          }
+        ]
+      },
+      {
+        "state": 2,
+        "title": "Photosynthetic Tissue",
+        "text_segments": [
+          {
+            "type": "text",
+            "content": "A metabolically active tissue layer that converts ambient stellar radiation into glucose reserves. Requires approximately {required_power} power unit(s) to sustain activity. Each unit contributes {food_output_per_cycle} food per cycle.\n\nCurrently controlled: {controlled_count} unit(s). Total food contribution: {total_food_contribution} per cycle."
+          }
+        ]
+      }
+    ]
+  }
+]

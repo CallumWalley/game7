@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://mind_view"]
+[gd_scene load_steps=3 format=3 uid="uid://mind_view"]
 
 [ext_resource type="Script" path="res://scripts/mind/MindView.gd" id="1_mind_script"]
+[ext_resource type="Script" path="res://scripts/mind/ComponentShapePreview.gd" id="2_shape_preview"]
 
 [node name="MindView" type="Control"]
 layout_mode = 3
@@ -28,10 +29,20 @@ size_flags_horizontal = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
+[node name="ComponentShapePreview" type="Control" parent="Root/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
+visible = false
+script = ExtResource("2_shape_preview")
+
 [node name="EntryText" type="RichTextLabel" parent="Root/Content"]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
+
+[node name="VariableSelector" type="OptionButton" parent="Root/Content"]
+layout_mode = 2
+visible = false
 
 [node name="Timeline" type="HSlider" parent="Root/Content"]
 layout_mode = 2

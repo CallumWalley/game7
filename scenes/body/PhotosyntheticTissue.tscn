@@ -14,5 +14,3 @@ color = Color(0.12, 0.17, 0.13, 0.42)
 input_pickable = true
 
 [node name="CollisionPolygon" type="CollisionPolygon2D" parent="HoverArea"]
-
-[node name="WorkerMarkers" type="Node2D" parent="."]

@@ -86,7 +86,7 @@ func _expand_rect(rect: Rect2, amount: float) -> Rect2:
 
 func _toggle_sensor(sensor_id: String, pressed: bool) -> void:
 	if pressed:
-		GameState.unlock_sensor(sensor_id)
+		ProgressionSystem.ensure_sensor_tier(sensor_id, 1)
 		TimeSystem.spend_for_action("scan")
 	_refresh()
 
@@ -94,7 +94,9 @@ func _observe_next() -> void:
 	var next_id := ObservationSystem.get_next_observable_id()
 	if next_id == "":
 		return
-	TimeSystem.spend_for_action("scan")
+	var result := ObservationSystem.observe_object(next_id)
+	if bool(result.get("success", false)):
+		TimeSystem.spend_for_action("scan")
 	_refresh()
 
 func _refresh() -> void:
@@ -111,9 +113,9 @@ func _refresh() -> void:
 	if object_lines.is_empty():
 		object_lines.append("- No objects available with current sensors")
 
-	optical_toggle.button_pressed = GameState.unlocked_sensors.has("optical")
-	thermal_toggle.button_pressed = GameState.unlocked_sensors.has("thermal")
-	gravity_toggle.button_pressed = GameState.unlocked_sensors.has("gravity")
+	optical_toggle.button_pressed = GameState.get_sensor_tier("optical") > 0
+	thermal_toggle.button_pressed = GameState.get_sensor_tier("thermal") > 0
+	gravity_toggle.button_pressed = GameState.get_sensor_tier("gravity") > 0
 	observe_button.disabled = ObservationSystem.get_next_observable_id() == ""
 	var workers := GameState.get_target_workers(ENV_TASK_ID)
 	var worker_text := WORKER_DISPLAY_UTILS.format_worker_mix(workers)

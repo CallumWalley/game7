@@ -90,12 +90,21 @@ var worker_targets: Dictionary = {}
 # Dynamic codex entries (SSOT from runtime objects when available).
 var dynamic_mind_entries: Dictionary = {}
 
+# Component memory progression.
+var _component_mind_entry_defs: Dictionary = {}  # component_type_id -> full JSON def
+var component_memory_states: Dictionary = {}      # component_type_id -> int current state
+var component_memory_vars: Dictionary = {}        # component_type_id -> {var_key -> chosen_value}
+var _component_first_hovered: Dictionary = {}     # component_type_id -> true
+var _component_properties: Dictionary = {}        # component_type_id -> {prop_key -> value}
+var memory_read_state: Dictionary = {}            # entry_id -> true means read
+
 
 func _ready() -> void:
 	_rng.randomize()
 	if world_seed < 0:
 		world_seed = _rng.randi()
 	food = starting_food
+	_load_component_mind_entries()
 
 
 func set_world_seed(seed: int) -> void:
@@ -589,9 +598,23 @@ func unlock_memory(_memory_id: String) -> void:
 
 
 func unlock_sensor(sensor_id: String) -> void:
-	if unlocked_sensors.has(sensor_id):
+	set_sensor_tier(sensor_id, 1)
+
+
+func get_sensor_tier(sensor_id: String) -> int:
+	if not unlocked_sensors.has(sensor_id):
+		return 0
+	var raw: Variant = unlocked_sensors[sensor_id]
+	if raw is bool:
+		return 1 if bool(raw) else 0
+	return maxi(int(raw), 0)
+
+
+func set_sensor_tier(sensor_id: String, tier: int) -> void:
+	var next_tier := maxi(tier, 0)
+	if next_tier <= get_sensor_tier(sensor_id):
 		return
-	unlocked_sensors[sensor_id] = true
+	unlocked_sensors[sensor_id] = next_tier
 	emit_signal("state_changed")
 
 
@@ -657,7 +680,9 @@ func report_node_controlled(node: Node) -> void:
 
 
 func report_component_controlled(component: Node) -> void:
-	if not component.has_method("get_mind_entry_data"):
+	var type_id: Variant = component.get("component_type_id")
+	if type_id != null and _component_mind_entry_defs.has(str(type_id)):
+		on_component_captured(str(type_id))
 		return
 	var data: Dictionary = component.call("get_mind_entry_data")
 	_register_and_unlock_runtime_mind_entry(data)
@@ -698,3 +723,131 @@ func _sample_normal_clamped(mean: float, stddev: float, min_value: float, max_va
 	var u2 := _rng.randf()
 	var z0 := sqrt(-2.0 * log(u1)) * cos(TAU * u2)
 	return clampf(mean + z0 * stddev, min_value, max_value)
+
+
+func on_component_first_hovered(component_type_id: String) -> void:
+	if component_type_id == "" or _component_first_hovered.has(component_type_id):
+		return
+	_component_first_hovered[component_type_id] = true
+	_set_component_memory_state(component_type_id, 1)
+
+
+func on_component_captured(component_type_id: String) -> void:
+	_set_component_memory_state(component_type_id, 2)
+
+
+func _set_component_memory_state(component_type_id: String, new_state: int) -> void:
+	var current := int(component_memory_states.get(component_type_id, 0))
+	if new_state <= current:
+		return
+	component_memory_states[component_type_id] = new_state
+	_refresh_component_mind_entry(component_type_id)
+	_clear_component_memory_read_state(component_type_id)
+	emit_signal("state_changed")
+	EventBus.component_memory_state_changed.emit(component_type_id, new_state)
+
+
+func _clear_component_memory_read_state(component_type_id: String) -> void:
+	var def: Dictionary = _component_mind_entry_defs.get(component_type_id, {})
+	var entry_id := str(def.get("mind_entry_id", "component_%s" % component_type_id))
+	memory_read_state.erase(entry_id)
+
+
+func _refresh_component_mind_entry(component_type_id: String) -> void:
+	var def: Dictionary = _component_mind_entry_defs.get(component_type_id, {})
+	if def.is_empty():
+		return
+	var entry_id := str(def.get("mind_entry_id", "component_%s" % component_type_id))
+	var current_state := int(component_memory_states.get(component_type_id, 0))
+	var state_def := _find_component_state_def(def, current_state)
+	if state_def.is_empty():
+		return
+	dynamic_mind_entries[entry_id] = {
+		"id": entry_id,
+		"title": str(state_def.get("title", entry_id)),
+		"text_segments": state_def.get("text_segments", []),
+		"component_type_id": component_type_id,
+		"state": current_state,
+	}
+	unlock_memory(entry_id)
+
+
+func _find_component_state_def(component_def: Dictionary, target_state: int) -> Dictionary:
+	for state_def in component_def.get("states", []):
+		if int(state_def.get("state", -1)) == target_state:
+			return state_def
+	return {}
+
+
+func set_component_memory_var(component_type_id: String, var_key: String, value: String) -> void:
+	if not component_memory_vars.has(component_type_id):
+		component_memory_vars[component_type_id] = {}
+	component_memory_vars[component_type_id][var_key] = value
+	emit_signal("state_changed")
+
+
+func get_component_memory_var(component_type_id: String, var_key: String) -> String:
+	var vars: Dictionary = component_memory_vars.get(component_type_id, {})
+	return str(vars.get(var_key, ""))
+
+
+func get_component_memory_state(component_type_id: String) -> int:
+	return int(component_memory_states.get(component_type_id, 0))
+
+
+func get_controlled_component_count(component_type_id: String) -> int:
+	var count := 0
+	for component in get_tree().get_nodes_in_group("worker_components"):
+		if str(component.get("component_type_id")) == component_type_id and bool(component.get("is_activated")):
+			count += 1
+	return count
+
+
+func register_component_properties(component_type_id: String, props: Dictionary) -> void:
+	_component_properties[component_type_id] = props
+
+
+func get_component_property(component_type_id: String, key: String, fallback: Variant = null) -> Variant:
+	var props: Dictionary = _component_properties.get(component_type_id, {})
+	if props.has(key):
+		return props[key]
+	return fallback
+
+
+func mark_memory_read(entry_id: String) -> void:
+	if entry_id == "":
+		return
+	memory_read_state[entry_id] = true
+
+
+func is_memory_read(entry_id: String) -> bool:
+	return memory_read_state.get(entry_id, false)
+
+
+func get_component_shape_data(component_type_id: String) -> Dictionary:
+	var def: Dictionary = _component_mind_entry_defs.get(component_type_id, {})
+	if def.is_empty():
+		return {}
+	var raw_verts: Array = def.get("polygon_verts", [])
+	if raw_verts.is_empty():
+		return {}
+	var verts := PackedVector2Array()
+	for pt in raw_verts:
+		var arr: Array = pt
+		verts.append(Vector2(float(arr[0]), float(arr[1])))
+	var fill_raw: Array = def.get("fill_color", [0.26, 0.55, 0.28, 0.58])
+	var outline_raw: Array = def.get("outline_color", [1.0, 1.0, 1.0, 0.95])
+	return {
+		"verts": verts,
+		"fill_color": Color(float(fill_raw[0]), float(fill_raw[1]), float(fill_raw[2]), float(fill_raw[3])),
+		"outline_color": Color(float(outline_raw[0]), float(outline_raw[1]), float(outline_raw[2]), float(outline_raw[3])),
+	}
+
+
+func _load_component_mind_entries() -> void:
+	var file := FileAccess.open("res://data/component_mind_entries.json", FileAccess.READ)
+	var parsed: Array = JSON.parse_string(file.get_as_text())
+	for def in parsed:
+		var type_id := str(def.get("component_type_id", ""))
+		if type_id != "":
+			_component_mind_entry_defs[type_id] = def

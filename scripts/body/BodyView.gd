@@ -1,6 +1,7 @@
 extends "res://scripts/common/MapViewBase.gd"
 
 const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
+const WORKER_WORLD_MARKERS := preload("res://scripts/ui/WorkerWorldMarkers.gd")
 
 ## Pan (middle-mouse drag, edge scroll) and zoom (scroll wheel) the body map.
 ## Hosts a SubViewport containing the 2D world and an overlay key panel.
@@ -20,6 +21,8 @@ var _hovered_component: Node = null
 var _suppress_status_popup_once: Dictionary = {}
 var _known_cluster_statuses: Dictionary = {}
 var _hover_card_hide_timer: float = -1.0
+var _worker_bench_layer: Node2D
+var _worker_bench_roots: Dictionary = {}
 const HOVER_CARD_HIDE_DELAY: float = 0.18
 const HOVER_CARD_MOUSE_OFFSET: Vector2 = Vector2(-220.0, 14.0)
 const PAN_BOUNDS_PADDING: float = 420.0
@@ -30,6 +33,15 @@ const VISION_SECONDARY_FEATHER_WORLD: float = 180.0
 const VISION_MAX_DARK_ALPHA: float = 0.92
 const MAX_VISION_CENTERS: int = 8
 const UI_BLOCKER_GRACE_PX: float = 52.0
+const WORKERBENCH_ICON_SCALE: float = 0.58
+const WORKERBENCH_ICON_RADIUS: float = 8.0
+const WORKERBENCH_CAPTURE_ARC_STEP: float = 0.22
+const WORKERBENCH_ORBIT_SPEED: float = 0.07
+const WORKERBENCH_MIN_ORBIT_RADIUS_PX: float = 34.0
+const WORKERBENCH_NODE_PADDING_PX: float = 12.0
+const WORKERBENCH_COMPONENT_MARGIN_PX: float = 16.0
+const WORKERBENCH_COMPONENT_STEP_PX: float = 18.0
+const WORKERBENCH_COMPONENT_RISE_PX: float = 14.0
 
 const VISION_SHADER := preload("res://shaders/vision_mask.gdshader")
 
@@ -38,6 +50,10 @@ func _ready() -> void:
 	var vision_material := ShaderMaterial.new()
 	vision_material.shader = VISION_SHADER
 	_vision_mask.material = vision_material
+	_worker_bench_layer = Node2D.new()
+	_worker_bench_layer.z_index = 1
+	_overlay.add_child(_worker_bench_layer)
+	_overlay.move_child(_worker_bench_layer, 1)
 	for child in _get_all_clusters():
 		_assign_concept_name_if_needed(child)
 		if child.has_signal("hovered") and child.has_signal("unhovered"):
@@ -67,6 +83,7 @@ func _on_map_process(delta: float) -> void:
 		if _hover_card_hide_timer <= 0.0:
 			_hide_card(_hovered_card)
 			_hover_card_hide_timer = -1.0
+	_refresh_worker_benches()
 	_update_cards_position()
 	_update_vision_mask()
 
@@ -107,6 +124,7 @@ func _on_component_hovered(component) -> void:
 	_hovered_cluster = null
 	_hovered_component = component
 	_hover_card_hide_timer = -1.0
+	GameState.on_component_first_hovered(str(component.get("component_type_id")))
 	_update_info()
 
 
@@ -345,6 +363,110 @@ func _world_to_overlay(world_pos: Vector2) -> Vector2:
 	var container_local: Vector2 = vp_pos * container_size / vp_size
 	var global_anchor: Vector2 = _viewport_container.get_global_rect().position + container_local
 	return global_anchor - _overlay.global_position
+
+
+func _refresh_worker_benches() -> void:
+	var active_target_ids: Dictionary = {}
+	for target_id in GameState.worker_targets.keys():
+		var target: Dictionary = GameState.worker_targets[target_id]
+		var workers: Dictionary = target.get("workers", {})
+		if _total_workers(workers) <= 0:
+			continue
+		match str(target.get("kind", "")):
+			"capture_node":
+				var target_node := get_node_or_null(NodePath(str(target.get("target_node_path", ""))))
+				if target_node == null:
+					continue
+				active_target_ids[target_id] = true
+				_refresh_capture_worker_bench(target_id, target_node, target, workers)
+			"component":
+				var component := get_node_or_null(NodePath(str(target.get("component_path", ""))))
+				if component == null:
+					continue
+				active_target_ids[target_id] = true
+				_refresh_component_worker_bench(target_id, component, workers)
+	for target_id in _worker_bench_roots.keys():
+		if active_target_ids.has(target_id):
+			continue
+		_worker_bench_roots[target_id].queue_free()
+		_worker_bench_roots.erase(target_id)
+
+
+func _refresh_capture_worker_bench(target_id: String, target_node: Node2D, target: Dictionary, workers: Dictionary) -> void:
+	var bench_root := _get_worker_bench_root(target_id)
+	var center := _world_to_overlay(target_node.global_position)
+	var source_path := str(target.get("source_node_path", ""))
+	var base_angle := 0.0
+	var source_node := get_node_or_null(NodePath(source_path)) if source_path != "" else null
+	if source_node != null:
+		base_angle = (_world_to_overlay(source_node.global_position) - center).angle()
+	var orbit_radius := maxf(_get_cluster_overlay_radius(target_node) + WORKERBENCH_NODE_PADDING_PX, WORKERBENCH_MIN_ORBIT_RADIUS_PX)
+	WORKER_WORLD_MARKERS.populate_orbiting_arc_from_workers(
+		bench_root,
+		workers,
+		center,
+		base_angle,
+		orbit_radius,
+		WORKERBENCH_CAPTURE_ARC_STEP,
+		Time.get_ticks_msec() * 0.001 * WORKERBENCH_ORBIT_SPEED,
+		WORKERBENCH_ICON_SCALE,
+		WORKER_DISPLAY_UTILS.ICON_FILL_COLOR,
+		WORKERBENCH_ICON_RADIUS,
+		18,
+		WORKER_DISPLAY_UTILS.ICON_STROKE_COLOR
+	)
+
+
+func _refresh_component_worker_bench(target_id: String, component: Node2D, workers: Dictionary) -> void:
+	var bench_root := _get_worker_bench_root(target_id)
+	var center := _world_to_overlay(component.global_position)
+	var component_radius := _get_component_overlay_radius(component)
+	var origin := center + Vector2(component_radius + WORKERBENCH_COMPONENT_MARGIN_PX, -WORKERBENCH_COMPONENT_RISE_PX)
+	WORKER_WORLD_MARKERS.populate_from_workers(
+		bench_root,
+		workers,
+		origin,
+		Vector2(WORKERBENCH_COMPONENT_STEP_PX, 0.0),
+		WORKERBENCH_ICON_SCALE,
+		WORKER_DISPLAY_UTILS.ICON_FILL_COLOR,
+		WORKERBENCH_ICON_RADIUS,
+		18,
+		WORKER_DISPLAY_UTILS.ICON_STROKE_COLOR
+	)
+
+
+func _get_worker_bench_root(target_id: String) -> Node2D:
+	if _worker_bench_roots.has(target_id):
+		return _worker_bench_roots[target_id]
+	var root := Node2D.new()
+	root.z_index = 1
+	_worker_bench_layer.add_child(root)
+	_worker_bench_roots[target_id] = root
+	return root
+
+
+func _get_cluster_overlay_radius(cluster: Node2D) -> float:
+	return _get_polygon_overlay_radius(cluster.get_node("ClusterPolygon") as Polygon2D, cluster.global_position)
+
+
+func _get_component_overlay_radius(component: Node2D) -> float:
+	return _get_polygon_overlay_radius(component.get_node("Polygon") as Polygon2D, component.global_position)
+
+
+func _get_polygon_overlay_radius(polygon: Polygon2D, center_world: Vector2) -> float:
+	var center := _world_to_overlay(center_world)
+	var max_radius := 0.0
+	for point in polygon.polygon:
+		var overlay_point := _world_to_overlay(polygon.to_global(point))
+		max_radius = maxf(max_radius, center.distance_to(overlay_point))
+	return max_radius
+
+
+func _total_workers(workers: Dictionary) -> int:
+	var total := 0
+	for value in workers.values():
+		total += int(value)
+	return total
 
 
 func _update_vision_mask() -> void:

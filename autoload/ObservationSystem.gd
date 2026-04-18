@@ -41,40 +41,18 @@ func observe_object(object_id: String) -> Dictionary:
 		return {"success": false, "reason": "requirements"}
 
 	if not GameState.observed_environment.has(object_id):
-		GameState.record_observation(object_id)
-		EventBus.emit_signal("environment_observed", object_id)
+		ProgressionSystem.record_environment_observation(object_id, obj_data)
 
 	return {"success": true, "id": object_id}
 
 func _requirements_met(obj_data: Dictionary) -> bool:
 	for sensor_id in obj_data.get("required_sensors", []):
-		if not GameState.unlocked_sensors.has(str(sensor_id)):
+		if GameState.get_sensor_tier(str(sensor_id)) < 1:
 			return false
-	return _evaluate_condition(obj_data.get("unlock_condition", {}))
 
-func _evaluate_condition(condition: Variant) -> bool:
-	var c: Dictionary = condition
-	var kind: String = str(c.get("type", ""))
-	match kind:
-		"all":
-			for child in c.get("conditions", []):
-				if not _evaluate_condition(child):
-					return false
-			return true
-		"any":
-			for child in c.get("conditions", []):
-				if _evaluate_condition(child):
-					return true
+	var sensor_requirements: Dictionary = obj_data.get("sensor_requirements", {})
+	for sensor_id in sensor_requirements.keys():
+		if GameState.get_sensor_tier(str(sensor_id)) < int(sensor_requirements[sensor_id]):
 			return false
-		"body_node_unlocked":
-			return GameState.unlocked_body_nodes.has(str(c.get("id", "")))
-		"memory_unlocked":
-			return GameState.unlocked_memories.has(str(c.get("id", "")))
-		"sensor_unlocked":
-			return GameState.unlocked_sensors.has(str(c.get("id", "")))
-		"observation_seen":
-			return GameState.observed_environment.has(str(c.get("id", "")))
-		"min_cycle":
-			return GameState.cycle >= int(c.get("value", 0))
-		_:
-			return true
+
+	return ProgressionSystem.evaluate_condition(obj_data.get("unlock_condition", {}))

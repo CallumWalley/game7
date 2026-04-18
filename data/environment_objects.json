@@ -3,27 +3,55 @@
     "id": "sunward_static",
     "title": "Sunward Static",
     "required_sensors": ["optical"],
+    "sensor_requirements": {
+      "optical": 1
+    },
     "unlock_condition": {},
-    "reveals_memories": ["radiant_noise"]
+    "reveals_memories": ["radiant_noise"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
   },
   {
     "id": "asteroid_belt_echo",
     "title": "Asteroid Belt Echo",
     "required_sensors": ["optical", "thermal"],
+    "sensor_requirements": {
+      "optical": 1,
+      "thermal": 1
+    },
     "unlock_condition": {
       "type": "body_node_unlocked",
       "id": "sensor_array"
     },
-    "reveals_memories": ["impact_memory"]
+    "reveals_memories": ["impact_memory"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
   },
   {
     "id": "l4_gravity_lens",
     "title": "L4 Gravity Lens",
     "required_sensors": ["gravity"],
+    "sensor_requirements": {
+      "gravity": 1
+    },
     "unlock_condition": {
       "type": "body_node_unlocked",
       "id": "nav_core"
     },
-    "reveals_memories": ["trajectory_truth"]
+    "reveals_memories": ["trajectory_truth"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
   }
 ]

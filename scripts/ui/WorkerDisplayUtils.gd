@@ -1,7 +1,7 @@
 extends RefCounted
 
-const ICON_FILL_COLOR: Color = Color(0.92, 0.94, 0.98, 0.95)
-const ICON_STROKE_COLOR: Color = Color(0.12, 0.14, 0.18, 0.95)
+const ICON_FILL_COLOR: Color = Color(1.0, 1.0, 1.0, 1.0)
+const ICON_STROKE_COLOR: Color = Color(1.0, 1.0, 1.0, 1.0)
 const ICON_STROKE_WIDTH: float = 2.0
 
 
