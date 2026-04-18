@@ -14,7 +14,7 @@ Views are projections over shared state, not separate game modes.
 
 - `Main` (`scenes/ui/Main.tscn`, `scripts/ui/Main.gd`): shell, tab switching, top HUD, global node-type key.
 - `BodyView` (`scenes/body/BodyView.tscn`, `scripts/body/BodyView.gd`): body map interactions, capture/component assignment, vision mask, hover details.
-- `EnvironmentView` (`scenes/environment/EnvironmentView.tscn`, `scripts/environment/EnvironmentView.gd`): sensors and placeholder environment task assignment.
+- `EnvironmentView` (`scenes/environment/EnvironmentView.tscn`, `scripts/environment/EnvironmentView.gd`): progression-gated sensor filter sidebar, player-centered camera, and environment hover summary.
 - `MindView` (`scenes/mind/MindView.tscn`, `scripts/mind/MindView.gd`): memories plus placeholder mind task assignment.
 - `FragmentConflictSystem` (`autoload/FragmentConflictSystem.gd`): autoloaded; implements the conflict activation/resolution loop. Activates conflicts from `data/fragment_conflicts.json` when memory and cycle conditions are met; emits `EventBus.fragment_node_contested` / `fragment_node_stabilized`. Body visual integration and ProgressionSystem stage gating are pending.
 
@@ -115,10 +115,9 @@ Worker capacity consistency:
 
 ### Environment
 - `ObservationSystem` is SSOT for environment object definitions (`data/environment_objects.json`) and sensor-gated observability.
-- `EnvironmentMap` (`scenes/environment/EnvironmentMap.tscn`, `scripts/environment/EnvironmentMap.gd`) builds `system0` world objects from shared data and owns player movement state (`position`, `rotation`, `velocity`, `acceleration`).
-- `EnvironmentView` camera uses player state each frame to keep a player-centered, fixed-orientation perspective.
+- `EnvironmentMap` (`scenes/environment/EnvironmentMap.tscn`, `scripts/environment/EnvironmentMap.gd`) builds only progression-visible `system0` objects from shared data, owns player movement state (`position`, `rotation`, `velocity`, `acceleration`), renders orbit lines for visible planets, and auto-observes nearby visible objects.
+- `EnvironmentView` camera uses player state each frame to keep a player-centered, fixed-orientation perspective while the sidebar exposes only unlocked sensor filters.
 - Canonical environment sensor channels are `radio`, `heat`, `light`, `gamma`, and `gravity`.
-- Placeholder worker-assignment task currently exists for vertical slice testing.
 
 ## Shared UI helpers
 

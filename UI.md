@@ -109,6 +109,8 @@ Purpose: external awareness and sensor-gated interactions.
 - Sensor toggles.
 - Observation controls.
 - Placeholder worker task panel using shared worker pool.
+- The entire right-side sensor panel is controlled by player state (`sidebar_visible`) and toggled in Environment view with `Tab`.
+- Panel visibility remains gated by both player state and unlocked sensor availability.
 
 Environment tab visibility can be debug-gated during development. If the active tab becomes unavailable, the UI should fall back to Body.
 

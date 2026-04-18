@@ -48,12 +48,16 @@ func _ready() -> void:
 
 
 func _setup_shape() -> void:
+	var verts := PackedVector2Array()
 	if not polygon_verts.is_empty():
-		_apply_verts(polygon_verts)
-	elif _polygon.polygon.is_empty():
-		var verts := _default_polygon_verts()
-		if not verts.is_empty():
-			_apply_verts(verts)
+		verts = polygon_verts
+	elif not _polygon.polygon.is_empty():
+		verts = _polygon.polygon
+	else:
+		verts = _default_polygon_verts()
+
+	if not verts.is_empty():
+		_apply_verts(verts)
 	_outline.default_color = Color(1.0, 1.0, 1.0, 0.95)
 	_outline.width = 2.4
 	_outline.antialiased = true

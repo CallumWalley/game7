@@ -4,6 +4,7 @@ extends "res://scripts/body/ComponentBase.gd"
 ## Produces food when sufficiently powered by assigned workers.
 
 @export var food_output_per_cycle: float = 1.0
+const HALF_SIZE: float = 64.0
 
 
 func _get_component_type_id() -> String:
@@ -23,10 +24,10 @@ func _get_registered_properties() -> Dictionary:
 
 func _default_polygon_verts() -> PackedVector2Array:
 	return PackedVector2Array([
-Vector2(-76.0, -48.0),
-Vector2(68.0, -54.0),
-Vector2(84.0, 34.0),
-Vector2(-60.0, 58.0),
+		Vector2(-HALF_SIZE, -HALF_SIZE),
+		Vector2(HALF_SIZE, -HALF_SIZE),
+		Vector2(HALF_SIZE, HALF_SIZE),
+		Vector2(-HALF_SIZE, HALF_SIZE),
 ])
 
 

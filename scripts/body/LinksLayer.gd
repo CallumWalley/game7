@@ -22,6 +22,7 @@ const WAVE_SEGMENTS: int = 12
 const WAVE_AMPLITUDE: float = 2.8
 const WAVE_FREQUENCY: float = 0.9
 const WAVE_SPEED: float = 1.2
+const LINK_Z_INDEX: int = -1
 
 var _clusters_root: Node2D
 var _link_lines: Dictionary = {}
@@ -256,7 +257,7 @@ func _create_link_line() -> Line2D:
 	line.width_curve = _create_width_curve()
 	line.default_color = Color.WHITE
 	line.antialiased = true
-	line.z_index = 1
+	line.z_index = LINK_Z_INDEX
 	line.texture_mode = Line2D.LINE_TEXTURE_STRETCH
 	var shader_material := ShaderMaterial.new()
 	shader_material.shader = LINK_SHADER

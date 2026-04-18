@@ -29,8 +29,8 @@ Track confirmed design/implementation drift, integration risks, and the smallest
 - Analysis: the three concerns (UI visibility gating, worker-type encounter tracking, debug runtime options) are correctly co-owned by one manager — they are all developer-controlled state that the panel `DebugVisibilityPanel.gd` consumes together. Signals are already distinct (`visibility_changed`, `debug_mode_changed`, `option_changed`). Internal dictionary separation is sufficient. Splitting to two autoloads would add file/callsite overhead with no coherence improvement.
 - `_match_option_to_system()` is the only coupling point outward (routes `push_scroll` and `log_food_ticks` back to GameState); this is intentional and correct.
 
-### Environment decode worker task — not a placeholder
-- Analysis: `env_task_signal_decode` is a functioning named-task that uses `GameState.ensure_named_task_target()` and drives a real progression loop (worker power → decode progress → sensor unlock → observation → memory recall). It is not a placeholder; it is a live integration point between Worker economy, ProgressionSystem, and ObservationSystem. UX labeling as "decode" is accurate.
+### Environment panel progression routing — moved off the right-hand task UI
+- Analysis: the environment sidebar is now reserved for sensor filter controls only. Sensor existence is driven by `ProgressionSystem` stage unlocks, and environment discoveries advance through `EnvironmentMap.gd` proximity observation rather than a dedicated observe/decode panel.
 
 ### Environment map was static art — implemented first data-driven system map
 - Problem: Environment map visuals were authored as static polygons with no object-space data and no player-centric navigation model.

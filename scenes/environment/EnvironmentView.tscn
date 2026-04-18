@@ -4,6 +4,8 @@
 [ext_resource type="PackedScene" path="res://scenes/environment/EnvironmentMap.tscn" id="2_env_map"]
 [ext_resource type="PackedScene" path="res://scenes/common/HoverInfoCard.tscn" id="3_hover_card"]
 
+[sub_resource type="ButtonGroup" id="ButtonGroup_filters"]
+
 [node name="EnvironmentView" type="Control" unique_id=1621776152]
 layout_mode = 3
 anchors_preset = 15
@@ -58,61 +60,37 @@ mouse_filter = 2
 [node name="HoverCard" parent="Root/MapArea/Overlay" unique_id=2136292215 instance=ExtResource("3_hover_card")]
 
 [node name="Sidebar" type="VBoxContainer" parent="Root" unique_id=709259793]
-custom_minimum_size = Vector2(220, 0)
+custom_minimum_size = Vector2(164, 0)
 layout_mode = 2
-
-[node name="SensorsLabel" type="Label" parent="Root/Sidebar" unique_id=523781818]
-layout_mode = 2
-text = "Sensors"
+alignment = 1
 
 [node name="Sensors" type="VBoxContainer" parent="Root/Sidebar" unique_id=1040315920]
 layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+
+[node name="LightToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1877300193]
+layout_mode = 2
+button_pressed = true
+button_group = SubResource("ButtonGroup_filters")
+text = "Light"
 
 [node name="RadioToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=599920869]
 layout_mode = 2
-button_pressed = true
+button_group = SubResource("ButtonGroup_filters")
 text = "Radio"
 
 [node name="HeatToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
 layout_mode = 2
+button_group = SubResource("ButtonGroup_filters")
 text = "Heat"
-
-[node name="LightToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1877300193]
-layout_mode = 2
-text = "Light"
 
 [node name="GammaToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1450283312]
 layout_mode = 2
+button_group = SubResource("ButtonGroup_filters")
 text = "Gamma"
 
 [node name="GravityToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1500829688]
 layout_mode = 2
+button_group = SubResource("ButtonGroup_filters")
 text = "Gravity"
-
-[node name="ObserveNextButton" type="Button" parent="Root/Sidebar" unique_id=757554105]
-layout_mode = 2
-text = "Observe Next Signal"
-
-[node name="WorkerTaskTitle" type="Label" parent="Root/Sidebar" unique_id=757554106]
-layout_mode = 2
-text = "Signal Decode Task"
-
-[node name="WorkerTaskButtons" type="HBoxContainer" parent="Root/Sidebar" unique_id=757554107]
-layout_mode = 2
-
-[node name="AddWorkerButton" type="Button" parent="Root/Sidebar/WorkerTaskButtons" unique_id=757554108]
-layout_mode = 2
-text = "+ Worker"
-
-[node name="RemoveWorkerButton" type="Button" parent="Root/Sidebar/WorkerTaskButtons" unique_id=757554109]
-layout_mode = 2
-text = "- Worker"
-
-[node name="WorkerTaskStatus" type="Label" parent="Root/Sidebar" unique_id=757554110]
-layout_mode = 2
-text = "Progress: 0%"
-autowrap_mode = 3
-
-[node name="WorkerTaskIcons" type="HBoxContainer" parent="Root/Sidebar" unique_id=757554111]
-layout_mode = 2
-theme_override_constants/separation = 4

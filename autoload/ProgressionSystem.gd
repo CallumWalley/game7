@@ -2,6 +2,12 @@ extends Node
 
 const CONDITION_EVALUATOR := preload("res://scripts/common/ConditionEvaluator.gd")
 const PROGRESSION_MIND_ENTRIES_PATH := "res://data/progression_mind_entries.json"
+const AUTO_SENSOR_UNLOCKS: Array[Dictionary] = [
+	{"sensor_id": "radio", "environment_stage": 1},
+	{"sensor_id": "heat", "environment_stage": 2},
+	{"sensor_id": "gamma", "body_stage": 2},
+	{"sensor_id": "gravity", "body_stage": 2, "environment_stage": 3},
+]
 
 ## Shared progression authority across Body, Environment, and Mind.
 ## Systems report progression facts here; this system applies unlock consequences.
@@ -68,6 +74,7 @@ func _refresh_core_memories_from_state() -> void:
 	progression_flags["progress_stage:body"] = body_stage
 	progression_flags["progress_stage:environment"] = environment_stage
 	progression_flags["progress_stage:main_story"] = main_story_stage
+	_apply_auto_sensor_unlocks(body_stage, environment_stage)
 
 	if changed_without_unlock_signal:
 		GameState.emit_signal("state_changed")
@@ -180,6 +187,24 @@ func _count_available_sensors() -> int:
 		if GameState.get_sensor_tier(str(sensor_id)) > 0:
 			total += 1
 	return total
+
+
+func _apply_auto_sensor_unlocks(body_stage: int, environment_stage: int) -> void:
+	for raw_unlock in AUTO_SENSOR_UNLOCKS:
+		var unlock := raw_unlock as Dictionary
+		if not _sensor_unlock_requirements_met(unlock, body_stage, environment_stage):
+			continue
+		ensure_sensor_tier(str(unlock.get("sensor_id", "")), int(unlock.get("tier", 1)))
+
+
+func _sensor_unlock_requirements_met(unlock: Dictionary, body_stage: int, environment_stage: int) -> bool:
+	var required_body_stage := int(unlock.get("body_stage", -1))
+	if required_body_stage >= 0 and body_stage < required_body_stage:
+		return false
+	var required_environment_stage := int(unlock.get("environment_stage", -1))
+	if required_environment_stage >= 0 and environment_stage < required_environment_stage:
+		return false
+	return true
 
 
 func record_environment_observation(observation_id: String, observation_def: Dictionary) -> void:
