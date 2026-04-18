@@ -53,6 +53,7 @@ func _build_panel() -> void:
 
 	_add_option_toggle("Log food ticks", DebugVisibilityManager.OPTION_DEBUG_LOG_FOOD_TICKS)
 	_add_option_toggle("Body hover stats", DebugVisibilityManager.OPTION_BODY_HOVER_STATS)
+	_add_option_toggle("ADI glucose stats", DebugVisibilityManager.OPTION_DEBUG_ADI_STATS)
 
 	var features_label := Label.new()
 	features_label.text = "UI Features:"
@@ -147,6 +148,7 @@ func _update_option_states() -> void:
 	for option in [
 		DebugVisibilityManager.OPTION_DEBUG_LOG_FOOD_TICKS,
 		DebugVisibilityManager.OPTION_BODY_HOVER_STATS,
+		DebugVisibilityManager.OPTION_DEBUG_ADI_STATS,
 	]:
 		if option in _option_buttons:
 			_option_buttons[option].disabled = not debug_enabled

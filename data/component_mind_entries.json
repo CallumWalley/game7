@@ -110,7 +110,7 @@
         "text_segments": [
           {
             "type": "text",
-            "content": "A metabolic buffer. Absorbs surplus food during high-supply cycles and releases stored reserves during lean periods, smoothing delivery to connected nodes. Requires {required_power} power unit(s). Each active unit contributes {storage_units_per_cycle} storage per cycle.\n\nCurrently controlled: {controlled_count} unit(s)."
+            "content": "A dense metabolic buffer that stores glucose. No workers required—only connection to your controlled systems.\n\nCurrent capacity: {current_glucose} / {max_glucose} glucose\nCharge rate: {charge_rate}/cycle\nDischarge rate: {discharge_rate}/cycle\n\nDischarging food: {discharge_rate} units/cycle (≈ {proportional_food}% of total available)"
           }
         ]
       }

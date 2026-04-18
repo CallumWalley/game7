@@ -1,14 +1,21 @@
-[gd_scene format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/body/AdiposeTissue.gd" id="1_at"]
+[ext_resource type="Script" path="res://scripts/body/tools/ComponentShapeSyncTool.gd" id="2_sync"]
 
 [node name="AdiposeTissue" type="Node2D"]
 script = ExtResource("1_at")
 
+[node name="ShapeSync" type="Node" parent="."]
+script = ExtResource("2_sync")
+
 [node name="Polygon" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-52, -22, -14, -58, 34, -56, 66, -16, 64, 28, 22, 60, -28, 54, -60, 14)
 
 [node name="Outline" type="Line2D" parent="."]
+points = PackedVector2Array(-52, -22, -14, -58, 34, -56, 66, -16, 64, 28, 22, 60, -28, 54, -60, 14, -52, -22)
 
 [node name="HoverArea" type="Area2D" parent="."]
 
 [node name="CollisionPolygon" type="CollisionPolygon2D" parent="HoverArea"]
+polygon = PackedVector2Array(-52, -22, -14, -58, 34, -56, 66, -16, 64, 28, 22, 60, -28, 54, -60, 14)

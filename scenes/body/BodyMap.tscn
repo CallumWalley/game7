@@ -5,6 +5,10 @@
 [ext_resource type="Script" uid="uid://brhmthpuvrdw" path="res://scripts/body/LinksLayer.gd" id="2_links"]
 [ext_resource type="PackedScene" path="res://scenes/body/NerveCluster.tscn" id="3_cluster"]
 [ext_resource type="PackedScene" uid="uid://cw63bphk0dqc8" path="res://scenes/body/PhotosyntheticTissue.tscn" id="4_component"]
+[ext_resource type="PackedScene" path="res://scenes/body/AdiposeTissue.tscn" id="6_nchxy"]
+[ext_resource type="PackedScene" path="res://scenes/body/MembranousLabyrinth.tscn" id="7_d0s1y"]
+[ext_resource type="PackedScene" path="res://scenes/body/decor/BioCircuitBloom.tscn" id="7_q5ej6"]
+[ext_resource type="PackedScene" path="res://scenes/body/decor/MachineryLattice.tscn" id="9_kk1rx"]
 
 [node name="BodyMap" type="Node2D" unique_id=1217959338]
 modulate = Color(0.22476482, 0.25271052, 0.21969578, 1)
@@ -16,10 +20,10 @@ script = ExtResource("1_grid")
 
 [node name="ShipPolygon" type="Polygon2D" parent="." unique_id=444385328]
 z_index = -9
-position = Vector2(985.99994, -931)
+position = Vector2(965, -921.00006)
 scale = Vector2(1.429396, 1.3749472)
 color = Color(0.1, 0.12, 0.18, 0.35)
-polygon = PackedVector2Array(-834, -134, -357, -464, -200, -150, 0, -148, 200, -135, 380, -90, 500, -40, 510, 0, 500, 40, 380, 90, 200, 135, 0, 148, 1247.3882, 315.67004, 1179.1528, 929.78845, 1133.6624, 1564.1249, 241.94437, 543.31146, 47.572693, 517.1108, -48.97159, 328.0126, -196.58655, 162.9154, -356.09448, 72.00281, 0, 0, 0, 0, 0, 0, 0, 0, 1333.3142, 1971.0099, 1093.2266, 1940.683, 923.90186, 1897.7201, 630.74243, 1505.9984, 519.54395, 1799.1578, 304.729, 1619.724, 82.33203, 1685.4323, -92.04724, 1781.4672, -534.3136, 1771.3583, -847.6909, 1728.3951, -842.6365, 1599.5062, -1305.1207, 1265.911, -1439.0642, 1114.2767, -1560.0996, 768.7569, -1535.0992, 409.17773, -1090.3057, 141.29065)
+polygon = PackedVector2Array(-834, -134, -357, -464, -200, -150, 0, -148, 200, -135, 380, -90, 500, -40, 510, 0, 500, 40, 380, 90, 200, 135, 0, 148, 1247.3882, 315.67004, 1179.1528, 929.78845, 1133.6624, 1564.1249, 241.94437, 543.31146, 47.572693, 517.1108, -48.97159, 328.0126, -196.58655, 162.9154, -356.09448, 72.00281, 0, 0, 0, 0, 0, 0, 0, 0, 1333.3142, 1971.0099, 1093.2266, 1940.683, 923.90186, 1897.7201, 630.74243, 1505.9984, 519.54395, 1799.1578, 304.729, 1619.724, 10.4939575, 917.8535, -20.288269, 1010.948, -176.29825, 1132.4072, -433.74966, 1237.8658, -804.53564, 1312.0505, -944.4549, 1283.6858, -973.83795, 1149.1351, -1010.91656, 1349.1428, -1125.6504, 1217.5015, -1150.8358, 1355.6885, -1238.2854, 1170.9542, -1321.5374, 1370.9619, -1495.0371, 1227.6836, -1790.9663, 1002.94775, -1965.8654, 792.0305, -2277.1855, 164.37, -2012.7384, -179.64325)
 
 [node name="LinksLayer" type="Node2D" parent="." unique_id=281050413]
 script = ExtResource("2_links")
@@ -30,29 +34,30 @@ script = ExtResource("2_links")
 position = Vector2(-900, -190)
 
 [node name="PhotosyntheticTissueWest" parent="ClustersRoot/west" unique_id=1894247787 instance=ExtResource("4_component")]
-position = Vector2(-186, -20)
+position = Vector2(-483, 667)
+rotation = 0.72431165
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterA4")])
 
 [node name="ClusterA4" parent="ClustersRoot/west" unique_id=880803771 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-46, 227)
+position = Vector2(-364.99997, 389)
 scale = Vector2(0.84, 0.84)
 glucose = 40.0
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
 is_enabled = false
-linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterC"), NodePath("../ClusterD2"), NodePath("../ClusterA10"), NodePath("../ClusterA8")])
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../ClusterA8")])
 
 [node name="ClusterA10" parent="ClustersRoot/west" unique_id=1504634673 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-165, 292)
+position = Vector2(-264, 12.999996)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-linked_node_paths = Array[NodePath]([NodePath("../ClusterD2"), NodePath("../ClusterA4"), NodePath("../ClusterA8")])
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD2"), NodePath("../ClusterA8")])
 
 [node name="ClusterA8" parent="ClustersRoot/west" unique_id=1752173926 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-179.99998, 195)
+position = Vector2(-511, 130.00002)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
@@ -64,11 +69,11 @@ position = Vector2(71, 300)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
-linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../../wake/clusterc_01"), NodePath("../ClusterA4")])
+linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../../wake/clusterc_01")])
 
 [node name="ClusterD" parent="ClustersRoot/west" unique_id=986552001 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(63.000015, 143)
+position = Vector2(-126, 439.99997)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
@@ -76,21 +81,37 @@ linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../Clus
 
 [node name="ClusterD2" parent="ClustersRoot/west" unique_id=605298744 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-63, 353)
+position = Vector2(-145.00003, 257)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterA10"), NodePath("../ClusterC")])
 
+[node name="AdiposeTissue" parent="ClustersRoot/west" unique_id=683000752 instance=ExtResource("6_nchxy")]
+position = Vector2(-332, 187)
+linked_node_paths = Array[NodePath]([NodePath("../ClusterA8"), NodePath("../ClusterA10"), NodePath("../ClusterD2"), NodePath("../ClusterA4")])
+
 [node name="wake" type="Node2D" parent="ClustersRoot" unique_id=952270788]
 
+[node name="BioCircuitBloom" parent="ClustersRoot/wake" unique_id=1902206894 instance=ExtResource("7_q5ej6")]
+position = Vector2(-275, 393.00003)
+rotation = 0.5307443
+scale = Vector2(1.3532763, 1.1243236)
+
+[node name="AdiposeTissue2" parent="ClustersRoot/wake" unique_id=80273713 instance=ExtResource("6_nchxy")]
+position = Vector2(392, 176.99998)
+rotation = 0.4728889
+scale = Vector2(3.0854487, 3.2760706)
+linked_node_paths = Array[NodePath]([NodePath("../clustera8_01")])
+
 [node name="PhotosyntheticTissueWake" parent="ClustersRoot/wake" unique_id=150127034 instance=ExtResource("4_component")]
-position = Vector2(55, 442)
+position = Vector2(254, 636)
+rotation = -0.33161256
 linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01")])
 
 [node name="clustera4_01" parent="ClustersRoot/wake" unique_id=165029725 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-73, 96)
+position = Vector2(-34, 145)
 scale = Vector2(0.84, 0.84)
 glucose = 40.0
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
@@ -100,7 +121,7 @@ linked_node_paths = Array[NodePath]([NodePath("../clusterd_01"), NodePath("../cl
 
 [node name="clustera10_01" parent="ClustersRoot/wake" unique_id=923590395 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-169, 314)
+position = Vector2(-58.99999, 281.99994)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
@@ -109,26 +130,26 @@ linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../c
 
 [node name="clustera8_01" parent="ClustersRoot/wake" unique_id=1646653295 instance=ExtResource("3_cluster")]
 z_index = 3
-position = Vector2(-53, 235)
+position = Vector2(112, 191.99998)
 scale = Vector2(1.1314286, 1.1314286)
 glucose = 90.0
 controlling_entity = 1
 node_tint = Color(0.20312428, 1.7712116e-05, 0.81139004, 0)
 startNode = true
-linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera10_01"), NodePath("../clusterc_01"), NodePath("../clustera4_01"), NodePath("../clusterd_01")])
+linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera10_01"), NodePath("../clustera4_01"), NodePath("../clusterd_01")])
 
 [node name="clusterc_01" parent="ClustersRoot/wake" unique_id=1530225967 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(-187, 150)
+position = Vector2(-289, 162.00002)
 scale = Vector2(0.9624, 0.9624)
 glucose = 90.0
 node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
 resistance = 1.335
-linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera4_01"), NodePath("../../west/ClusterC"), NodePath("../clustera8_01")])
+linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera4_01"), NodePath("../../west/ClusterC")])
 
 [node name="clusterd_01" parent="ClustersRoot/wake" unique_id=882039810 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(54, 81)
+position = Vector2(227, -10.000011)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
@@ -137,9 +158,17 @@ linked_node_paths = Array[NodePath]([NodePath("../clustera4_01"), NodePath("../c
 
 [node name="clusterd2_01" parent="ClustersRoot/wake" unique_id=3591920 instance=ExtResource("3_cluster")]
 z_index = 2
-position = Vector2(59, 294)
+position = Vector2(237.00002, 518)
 scale = Vector2(0.8604, 0.8604)
 glucose = 40.0
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
 resistance = 0.01
 linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera8_01")])
+
+[node name="MembranousLabyrinth" parent="ClustersRoot/wake" unique_id=1760244116 instance=ExtResource("7_d0s1y")]
+position = Vector2(284, -169)
+linked_node_paths = Array[NodePath]([NodePath("../clusterd_01")])
+
+[node name="MachineryLattice" parent="ClustersRoot/wake" unique_id=158283070 instance=ExtResource("9_kk1rx")]
+position = Vector2(-180, -65)
+scale = Vector2(1.0038693, 0.98004776)

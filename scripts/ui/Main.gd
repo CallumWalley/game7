@@ -96,7 +96,12 @@ func _update_cycle_label() -> void:
 
 
 func _update_resource_label() -> void:
-	resource_label.text = "Food %.1f | -%.2f/tick | Power %.2f" % [GameState.food, GameState.last_tick_food_consumed, GameState.last_tick_power_total]
+	var food_counter_visible := ProgressionSystem.is_food_counter_visible()
+	if food_counter_visible:
+		resource_label.text = "Food %.1f | -%.2f/tick | Power %.2f" % [GameState.food, GameState.last_tick_food_consumed, GameState.last_tick_power_total]
+	else:
+		resource_label.text = "Power %.2f" % [GameState.last_tick_power_total]
+	resource_label.visible = true
 
 
 func _update_global_key() -> void:

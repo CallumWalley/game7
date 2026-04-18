@@ -1,14 +1,21 @@
-[gd_scene format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/body/MembranousLabyrinth.gd" id="1_ml"]
+[ext_resource type="Script" path="res://scripts/body/tools/ComponentShapeSyncTool.gd" id="2_sync"]
 
 [node name="MembranousLabyrinth" type="Node2D"]
 script = ExtResource("1_ml")
 
+[node name="ShapeSync" type="Node" parent="."]
+script = ExtResource("2_sync")
+
 [node name="Polygon" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-62, -18, -18, -54, 36, -46, 66, -8, 54, 38, 6, 50, -40, 30)
 
 [node name="Outline" type="Line2D" parent="."]
+points = PackedVector2Array(-62, -18, -18, -54, 36, -46, 66, -8, 54, 38, 6, 50, -40, 30, -62, -18)
 
 [node name="HoverArea" type="Area2D" parent="."]
 
 [node name="CollisionPolygon" type="CollisionPolygon2D" parent="HoverArea"]
+polygon = PackedVector2Array(-62, -18, -18, -54, 36, -46, 66, -8, 54, 38, 6, 50, -40, 30)

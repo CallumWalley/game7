@@ -22,18 +22,6 @@ func _get_registered_properties() -> Dictionary:
 	}
 
 
-func _default_polygon_verts() -> PackedVector2Array:
-	return PackedVector2Array([
-Vector2(-62.0, -18.0),
-Vector2(-18.0, -54.0),
-Vector2(36.0, -46.0),
-Vector2(66.0, -8.0),
-Vector2(54.0, 38.0),
-Vector2(6.0, 50.0),
-Vector2(-40.0, 30.0),
-])
-
-
 func _activated_fill_primary() -> Color:
 	return Color(0.22, 0.52, 0.78, 1.0)
 

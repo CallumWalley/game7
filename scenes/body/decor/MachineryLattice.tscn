@@ -1,0 +1,61 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/body/visual/AmbientBackdropObject.gd" id="1_ambient"]
+
+[node name="MachineryLattice" type="Node2D"]
+modulate = Color(0.72, 0.86, 0.95, 0.46)
+script = ExtResource("1_ambient")
+bob_amplitude = 3.6
+bob_speed = 0.23
+rotate_amplitude = 0.012
+alpha_pulse_amplitude = 0.035
+alpha_pulse_speed = 0.18
+
+[node name="BackPlate" type="Polygon2D" parent="."]
+color = Color(0.08, 0.13, 0.18, 0.23)
+polygon = PackedVector2Array(-184, -52, -132, -74, -42, -82, 78, -70, 154, -44, 176, -6, 146, 34, 56, 56, -56, 54, -142, 26, -180, -8)
+
+[node name="RibFrame" type="Line2D" parent="."]
+default_color = Color(0.41, 0.60, 0.72, 0.2)
+width = 2.8
+closed = true
+antialiased = true
+points = PackedVector2Array(-158, -30, -92, -52, -10, -56, 66, -46, 124, -20, 134, 8, 98, 30, 24, 42, -70, 34, -134, 12)
+
+[node name="CircuitRail" type="Line2D" parent="."]
+default_color = Color(0.52, 0.78, 0.90, 0.2)
+width = 2.0
+antialiased = true
+points = PackedVector2Array(-166, -10, -126, -2, -88, -4, -44, 6, 8, 2, 56, 10, 112, 16, 162, 26)
+
+[node name="ConduitA" type="Line2D" parent="."]
+default_color = Color(0.52, 0.78, 0.90, 0.18)
+width = 1.8
+antialiased = true
+points = PackedVector2Array(-108, -6, -96, -28, -68, -34, -42, -18)
+
+[node name="ConduitB" type="Line2D" parent="."]
+default_color = Color(0.52, 0.78, 0.90, 0.16)
+width = 1.8
+antialiased = true
+points = PackedVector2Array(18, 16, 42, 34, 78, 34, 102, 20)
+
+[node name="OrganicPatch" type="Polygon2D" parent="."]
+position = Vector2(-28, 18)
+color = Color(0.16, 0.28, 0.24, 0.16)
+polygon = PackedVector2Array(-40, -14, -14, -28, 12, -26, 34, -8, 30, 20, 4, 34, -24, 30, -38, 10)
+
+[node name="BoltA" type="Polygon2D" parent="."]
+position = Vector2(-120, -36)
+color = Color(0.56, 0.80, 0.92, 0.14)
+polygon = PackedVector2Array(-6, -6, 6, -6, 6, 6, -6, 6)
+
+[node name="BoltB" type="Polygon2D" parent="."]
+position = Vector2(42, -44)
+color = Color(0.56, 0.80, 0.92, 0.14)
+polygon = PackedVector2Array(-6, -6, 6, -6, 6, 6, -6, 6)
+
+[node name="BoltC" type="Polygon2D" parent="."]
+position = Vector2(128, 16)
+color = Color(0.56, 0.80, 0.92, 0.14)
+polygon = PackedVector2Array(-6, -6, 6, -6, 6, 6, -6, 6)

@@ -1,10 +1,14 @@
 @tool
-extends "res://scripts/body/ComponentBase.gd"
+extends "res://scripts/body/Biological.gd"
 
-## Dense metabolic buffer tissue. When powered, increases effective food
-## storage capacity and smooths delivery to connected nodes.
-
-@export var storage_units_per_cycle: float = 2.0
+## Dense metabolic glucose storage buffer. No workers required.
+## Requires only to be owned (connected to player-controlled node).
+## 
+## Charge rate: glucose intake from food sources
+## Discharge rate: glucose delivery to connected nodes (approx 2x charge)
+##
+## Grows/shrinks visually with glucose level.
+## Links pulse and thicken in proportion to charge/discharge activity.
 
 
 func _get_component_type_id() -> String:
@@ -16,23 +20,10 @@ func _get_preferred_node_type() -> String:
 
 
 func _get_registered_properties() -> Dictionary:
-	return {
-		"required_power": required_power,
-		"storage_units_per_cycle": storage_units_per_cycle,
-	}
-
-
-func _default_polygon_verts() -> PackedVector2Array:
-	return PackedVector2Array([
-Vector2(-52.0, -22.0),
-Vector2(-14.0, -58.0),
-Vector2(34.0, -56.0),
-Vector2(66.0, -16.0),
-Vector2(64.0, 28.0),
-Vector2(22.0, 60.0),
-Vector2(-28.0, 54.0),
-Vector2(-60.0, 14.0),
-])
+	var props := super()
+	# Remove worker-related properties; ADI doesn't use workers
+	props.erase("required_power")
+	return props
 
 
 func _activated_fill_primary() -> Color:
@@ -51,13 +42,23 @@ func _inactive_fill_secondary() -> Color:
 	return Color(0.16, 0.12, 0.04, 1.0)
 
 
-func get_storage_units_per_cycle() -> float:
-	return storage_units_per_cycle
+## Override: ADI activates based on ownership alone, not worker power.
+## Requires connection to player-controlled node.
+func update_activation_from_workers() -> bool:
+	var connected := is_connected_to_player_node()
+	if connected != is_activated:
+		is_activated = connected
+		controlling_entity = GameState.ENTITY_PLAYER if connected else GameState.ENTITY_NONE
+		if is_activated:
+			GameState.report_component_controlled(self)
+		activation_changed.emit(is_activated)
+	_update_visual_state()
+	return is_activated
 
 
 func get_mind_entry_data() -> Dictionary:
 	return {
 		"id": "component_adipose_tissue",
 		"title": "Adipose Tissue",
-		"text": "A dense energetic buffer that absorbs surplus food and releases it during lean cycles.",
+		"text": "A dense glucose storage buffer that doesn't require workers—only connection to your controlled systems. Accumulates and releases glucose to meet demand.",
 	}

@@ -75,11 +75,27 @@ func _refresh_core_memories_from_state() -> void:
 	progression_flags["progress_stage:environment"] = environment_stage
 	progression_flags["progress_stage:main_story"] = main_story_stage
 	_apply_auto_sensor_unlocks(body_stage, environment_stage)
+	_update_ui_unlock_flags()
 
 	if changed_without_unlock_signal:
 		GameState.emit_signal("state_changed")
 
 	_refreshing_core_memories = false
+
+
+func _update_ui_unlock_flags() -> void:
+	"""Update UI visibility flags based on progression state."""
+	var adi_count := GameState.get_owned_adipose_tissue_count()
+	var food_counter_unlocked := adi_count >= 2
+	
+	var previous_flag := progression_flags.get("ui:food_counter_visible", false)
+	if food_counter_unlocked != previous_flag:
+		progression_flags["ui:food_counter_visible"] = food_counter_unlocked
+
+
+func is_food_counter_visible() -> bool:
+	"""Check if the food resource counter should be displayed."""
+	return bool(progression_flags.get("ui:food_counter_visible", false))
 
 
 func _upsert_core_memory_entry(def: Dictionary, entry_id: String, stage: int) -> bool:

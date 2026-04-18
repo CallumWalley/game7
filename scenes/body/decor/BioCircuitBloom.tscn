@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/body/visual/AmbientBackdropObject.gd" id="1_ambient"]
+
+[node name="BioCircuitBloom" type="Node2D"]
+modulate = Color(0.73, 0.89, 0.96, 0.5)
+script = ExtResource("1_ambient")
+bob_amplitude = 4.5
+bob_speed = 0.27
+rotate_amplitude = 0.015
+alpha_pulse_amplitude = 0.04
+alpha_pulse_speed = 0.21
+
+[node name="MembranePlate" type="Polygon2D" parent="."]
+color = Color(0.10, 0.16, 0.20, 0.25)
+polygon = PackedVector2Array(-172, -32, -145, -74, -70, -86, 24, -72, 88, -58, 152, -22, 176, 18, 116, 58, 34, 74, -40, 70, -126, 42)
+
+[node name="TraceRing" type="Line2D" parent="."]
+default_color = Color(0.48, 0.70, 0.80, 0.22)
+width = 3.0
+closed = true
+antialiased = true
+points = PackedVector2Array(-142, -20, -92, -48, -30, -54, 32, -46, 92, -22, 116, 10, 80, 36, 16, 46, -56, 40, -116, 16)
+
+[node name="CircuitSpine" type="Line2D" parent="."]
+default_color = Color(0.44, 0.64, 0.75, 0.24)
+width = 2.0
+antialiased = true
+points = PackedVector2Array(-166, 0, -96, -6, -38, -2, 20, 4, 88, 14, 166, 22)
+
+[node name="CapillaryA" type="Line2D" parent="."]
+default_color = Color(0.55, 0.80, 0.92, 0.2)
+width = 1.6
+antialiased = true
+points = PackedVector2Array(-42, -2, -18, -28, 12, -26, 28, -8)
+
+[node name="CapillaryB" type="Line2D" parent="."]
+default_color = Color(0.55, 0.80, 0.92, 0.18)
+width = 1.6
+antialiased = true
+points = PackedVector2Array(-22, 16, 10, 30, 38, 24, 62, 12)
+
+[node name="VesicleA" type="Polygon2D" parent="."]
+position = Vector2(-114, -42)
+color = Color(0.46, 0.71, 0.84, 0.15)
+polygon = PackedVector2Array(-10, 0, -6, -8, 4, -10, 10, -2, 8, 8, -2, 10)
+
+[node name="VesicleB" type="Polygon2D" parent="."]
+position = Vector2(96, 44)
+color = Color(0.46, 0.71, 0.84, 0.13)
+polygon = PackedVector2Array(-8, -2, -2, -10, 8, -8, 10, 2, 2, 10, -8, 8)

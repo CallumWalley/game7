@@ -9,6 +9,7 @@ signal option_changed(option: String, value: bool)
 const OPTION_SHOW_DEBUG_WINDOW: String = "show_debug_window"
 const OPTION_DEBUG_LOG_FOOD_TICKS: String = "debug_log_food_ticks"
 const OPTION_BODY_HOVER_STATS: String = "body_hover_stats"
+const OPTION_DEBUG_ADI_STATS: String = "debug_adi_stats"
 
 ## Tracks which UI features are visible
 var _visibility_state: Dictionary = {
@@ -30,6 +31,7 @@ var _debug_options: Dictionary = {
 	OPTION_SHOW_DEBUG_WINDOW: true,
 	OPTION_DEBUG_LOG_FOOD_TICKS: false,
 	OPTION_BODY_HOVER_STATS: true,
+	OPTION_DEBUG_ADI_STATS: false,
 }
 
 func _ready() -> void:

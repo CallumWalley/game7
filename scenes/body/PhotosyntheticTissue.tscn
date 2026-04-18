@@ -1,14 +1,41 @@
 [gd_scene format=3 uid="uid://cw63bphk0dqc8"]
 
 [ext_resource type="Script" uid="uid://8hdkfft76y2j" path="res://scripts/body/PhotosyntheticTissue.gd" id="1_pt"]
+[ext_resource type="Script" uid="uid://cblkvbgbhv16" path="res://scripts/body/tools/ComponentShapeSyncTool.gd" id="2_sync"]
+[ext_resource type="Shader" uid="uid://dn1cnhdejjdfa" path="res://shaders/node_fill.gdshader" id="3_wj4e5"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vuedk"]
+shader = ExtResource("3_wj4e5")
+shader_parameter/primary_color = Color(1, 1, 1, 1)
+shader_parameter/secondary_color = Color(0.35, 0.62, 1, 1)
+shader_parameter/pattern_seed = 832.75446
+shader_parameter/pattern_scale = 26.0
+shader_parameter/flow_speed = 1.0
+shader_parameter/marbling_strength = 0.22
+shader_parameter/ownership_pulse_strength = 0.0
+shader_parameter/capture_flash_strength = 0.0
+shader_parameter/ownership_pulse_color = Color(0.56, 0.86, 1, 1)
+shader_parameter/capture_flash_color = Color(0.98, 0.76, 0.42, 1)
 
 [node name="PhotosyntheticTissue" type="Node2D" unique_id=1058606906]
+position = Vector2(0, -50)
+scale = Vector2(2, 2)
 script = ExtResource("1_pt")
 
+[node name="ShapeSync" type="Node" parent="." unique_id=93416320]
+script = ExtResource("2_sync")
+
 [node name="Polygon" type="Polygon2D" parent="." unique_id=451974705]
+material = SubResource("ShaderMaterial_vuedk")
+polygon = PackedVector2Array(-274.0934, -75.81549, -301.40274, -34.851482, -246.78407, 6.1125298, -219.47472, 19.767197, -96.582695, 33.42187, -1.0000005, 40.249207, 94.58269, 33.42187, 217.47472, 19.767197, 244.78407, 6.1125298, 299.40274, -34.851482, 272.0934, -75.81549, 203.82005, -55.33349, -1.0000005, -34.851482, -205.82005, -55.33349)
 
 [node name="Outline" type="Line2D" parent="." unique_id=349798126]
+points = PackedVector2Array(-274.0934, -75.81549, -301.40274, -34.851482, -246.78407, 6.1125298, -219.47472, 19.767197, -96.582695, 33.42187, -1.0000005, 40.249207, 94.58269, 33.42187, 217.47472, 19.767197, 244.78407, 6.1125298, 299.40274, -34.851482, 272.0934, -75.81549, 203.82005, -55.33349, -1.0000005, -34.851482, -205.82005, -55.33349, -274.0934, -75.81549)
+width = 2.4
+default_color = Color(1, 1, 1, 0.95)
+antialiased = true
 
 [node name="HoverArea" type="Area2D" parent="." unique_id=1968986023]
 
 [node name="CollisionPolygon" type="CollisionPolygon2D" parent="HoverArea" unique_id=36807488]
+polygon = PackedVector2Array(-274.0934, -75.81549, -301.40274, -34.851482, -246.78407, 6.1125298, -219.47472, 19.767197, -96.582695, 33.42187, -1.0000005, 40.249207, 94.58269, 33.42187, 217.47472, 19.767197, 244.78407, 6.1125298, 299.40274, -34.851482, 272.0934, -75.81549, 203.82005, -55.33349, -1.0000005, -34.851482, -205.82005, -55.33349)

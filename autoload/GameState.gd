@@ -61,6 +61,9 @@ var observed_environment: Dictionary = {}
 var thought_queue: Array[String] = []
 @export var world_seed: int = -1
 
+# ADI (adipose tissue) component tracking
+var _owned_adi_components: Array = []
+
 # Persistent assignments: cluster_id -> generated adjectiveNoun label.
 var node_concept_names: Dictionary = {}
 
@@ -156,10 +159,17 @@ func _simulate_food_tick() -> void:
 		requests.append(request)
 		total_request += request
 
-	var available := maxf(food, 0.0)
+	# Calculate available food from ADIs
+	var total_discharge_rate := 0.0
+	for adi in _owned_adi_components:
+		if adi != null and adi.has_method("get_discharge_rate"):
+			total_discharge_rate += float(adi.call("get_discharge_rate"))
+
+	var available_from_discharge := minf(total_discharge_rate, calculate_total_food_from_adipose())
+	var total_available := available_from_discharge + food_regen_per_tick
 	var allocation_ratio := 0.0
 	if total_request > 0.0:
-		allocation_ratio = clampf(available / total_request, 0.0, 1.0)
+		allocation_ratio = clampf(total_available / total_request, 0.0, 1.0)
 
 	var consumed_total: float = 0.0
 	var node_logs: Array[String] = []
@@ -173,7 +183,20 @@ func _simulate_food_tick() -> void:
 		if debug_log_food_ticks:
 			node_logs.append("%s req=%.3f alloc=%.3f dG=%.3f" % [cluster.name, request, allocated, delta])
 
-	food = maxf(0.0, food - consumed_total + food_regen_per_tick)
+	# Discharge glucose from ADIs proportionally to meet consumption
+	if consumed_total > 0.0 and total_discharge_rate > 0.0:
+		for adi in _owned_adi_components:
+			if adi == null or not adi.has_method("get_discharge_rate"):
+				continue
+			var adi_discharge_rate := float(adi.call("get_discharge_rate"))
+			var proportion := adi_discharge_rate / total_discharge_rate if total_discharge_rate > 0.0 else 0.0
+			var adi_discharge_amount := consumed_total * proportion
+			var actually_discharged := float(adi.call("discharge_glucose", adi_discharge_amount))
+			if debug_log_food_ticks:
+				node_logs.append("  %s discharge=%.3f actual=%.3f" % [adi.name, adi_discharge_amount, actually_discharged])
+
+	# Update cached food value
+	food = calculate_total_food_from_adipose()
 	last_tick_food_consumed = consumed_total
 
 	var power_total: float = 0.0
@@ -184,7 +207,7 @@ func _simulate_food_tick() -> void:
 	last_tick_power_total = power_total
 
 	if debug_log_food_ticks:
-		print("[Tick %d] food=%.3f consumed=%.3f requested=%.3f ratio=%.3f power=%.3f" % [cycle + 1, food, consumed_total, total_request, allocation_ratio, power_total])
+		print("[Tick %d] food=%.3f consumed=%.3f requested=%.3f ratio=%.3f power=%.3f discharge_rate=%.3f" % [cycle + 1, food, consumed_total, total_request, allocation_ratio, power_total, total_discharge_rate])
 		for line in node_logs:
 			print("  - %s" % line)
 
@@ -226,9 +249,16 @@ func _simulate_worker_tick() -> void:
 
 	for component in get_tree().get_nodes_in_group("worker_components"):
 		var activated := bool(component.call("update_activation_from_workers"))
-		if activated:
-			food += float(component.call("get_food_output_per_cycle"))
-
+		if not activated:
+			continue
+		
+		# Handle photosynthetic tissue: charge connected ADIs
+		var type_id: Variant = component.get("component_type_id")
+		if type_id != null and str(type_id) == "photosynthetic_tissue":
+			var production := float(component.call("get_glucose_production_per_cycle"))
+			if production > 0.0:
+				_distribute_glucose_production(production, component)
+	
 	if reassigned:
 		emit_signal("state_changed")
 
@@ -748,12 +778,59 @@ func report_node_controlled(node: Node) -> void:
 
 
 func report_component_controlled(component: Node) -> void:
+	# Track ADI components for food system
 	var type_id: Variant = component.get("component_type_id")
+	if type_id != null and str(type_id) == "adipose_tissue":
+		if not _owned_adi_components.has(component):
+			_owned_adi_components.append(component)
+	
 	if type_id != null and _component_mind_entry_defs.has(str(type_id)):
 		on_component_captured(str(type_id))
 		return
 	var data: Dictionary = component.call("get_mind_entry_data")
 	_register_and_unlock_runtime_mind_entry(data)
+
+
+func get_owned_adipose_tissues() -> Array:
+	"""Return array of owned ADI components."""
+	return _owned_adi_components
+
+
+func get_owned_adipose_tissue_count() -> int:
+	"""Return count of owned ADI components."""
+	return _owned_adi_components.size()
+
+
+func calculate_total_food_from_adipose() -> float:
+	"""Calculate total food as sum of glucose in all owned ADIs."""
+	var total := 0.0
+	for adi in _owned_adi_components:
+		if adi != null and adi.has_method("get_current_glucose"):
+			total += float(adi.call("get_current_glucose"))
+	return total
+
+
+func _distribute_glucose_production(amount: float, source: Node) -> void:
+	"""Distribute glucose production from source (e.g., PhotosyntheticTissue) to owned ADIs proportionally by charge rate."""
+	if _owned_adi_components.is_empty():
+		return
+	
+	var total_charge_rate := 0.0
+	for adi in _owned_adi_components:
+		if adi != null and adi.has_method("get_charge_rate"):
+			total_charge_rate += float(adi.call("get_charge_rate"))
+	
+	if total_charge_rate <= 0.0:
+		return
+	
+	for adi in _owned_adi_components:
+		if adi == null or not adi.has_method("get_charge_rate"):
+			continue
+		var adi_charge_rate := float(adi.call("get_charge_rate"))
+		var proportion := adi_charge_rate / total_charge_rate
+		var adi_charge_amount := amount * proportion
+		if adi.has_method("charge_glucose"):
+			adi.call("charge_glucose", adi_charge_amount)
 
 
 func _register_and_unlock_runtime_mind_entry(data: Dictionary) -> void:

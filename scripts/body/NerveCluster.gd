@@ -3,8 +3,7 @@ extends "res://scripts/body/ThoughtNode.gd"
 
 ## Small biological compute cluster. Primary node type on the body map.
 ## Uses an irregular organic polygon plus wobble animation.
-
-@export var glucose: float = 100.0
+## Glucose managed by composed GlucoseSystem.
 
 signal glucose_changed(new_value: int)
 
@@ -19,6 +18,7 @@ const DEFAULT_GLUCOSE: float = 100.0
 
 var _base_polygon: PackedVector2Array = PackedVector2Array()
 var _vertex_phases: Array[float] = []
+var _glucose: GlucoseSystem
 
 
 func _build_shape_polygon() -> PackedVector2Array:
@@ -37,19 +37,24 @@ func _build_shape_polygon() -> PackedVector2Array:
 func _generate_runtime_state_on_first_visibility() -> void:
 	if _runtime_generated:
 		return
-	if Engine.is_editor_hint() and glucose == DEFAULT_GLUCOSE:
-		glucose = 40.0
-	elif glucose == DEFAULT_GLUCOSE:
-		glucose = GameState.sample_initial_node_glucose_percent()
+	if _glucose == null:
+		var initial_glucose := DEFAULT_GLUCOSE
+		if Engine.is_editor_hint():
+			initial_glucose = 40.0
+		else:
+			initial_glucose = GameState.sample_initial_node_glucose_percent()
+		_glucose = GlucoseSystem.new(100.0, 0.0, 0.0)  # NeuronCluster doesn't use charge/discharge
+		_glucose.set_glucose(initial_glucose)
 	super._generate_runtime_state_on_first_visibility()
-	glucose_changed.emit(int(round(glucose)))
+	glucose_changed.emit(int(round(_glucose.current_glucose)))
 
 
 func _animate_visuals(delta: float) -> void:
 	super._animate_visuals(delta)
 	if _base_polygon.is_empty():
 		return
-	var fed_actual := _glucose_factor(glucose)
+	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	var fed_actual := _glucose_factor(glucose_val)
 	var wobble_factor := fed_actual
 	if not is_enabled:
 		wobble_factor *= 0.35
@@ -67,16 +72,17 @@ func _animate_visuals(delta: float) -> void:
 
 
 func get_food_request_units() -> float:
-	var effective_glucose := glucose
+	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	var effective_glucose := glucose_val
 	if not is_enabled and not is_in_coma():
 		effective_glucose = GameState.manual_disabled_request_glucose_equivalent
 	return remap(
-clampf(effective_glucose, GameState.request_glucose_min, GameState.request_glucose_max),
-GameState.request_glucose_min,
-GameState.request_glucose_max,
-GameState.food_request_min,
-GameState.food_request_max
-)
+		clampf(effective_glucose, GameState.request_glucose_min, GameState.request_glucose_max),
+		GameState.request_glucose_min,
+		GameState.request_glucose_max,
+		GameState.food_request_min,
+		GameState.food_request_max
+	)
 
 
 func compute_glucose_delta(request_units: float, allocated_units: float) -> float:
@@ -88,17 +94,19 @@ func compute_glucose_delta(request_units: float, allocated_units: float) -> floa
 
 
 func apply_food_result(_request_units: float, _allocated_units: float, glucose_delta: float) -> void:
-	glucose = clampf(glucose + glucose_delta, 0.0, 100.0)
+	_glucose.set_glucose(_glucose.current_glucose + glucose_delta)
 	refresh_status()
-	glucose_changed.emit(int(round(glucose)))
+	glucose_changed.emit(int(round(_glucose.current_glucose)))
 
 
 func get_hidden_power() -> float:
-	return remap(clampf(glucose, GameState.coma_glucose_threshold, GameState.power_full_glucose), GameState.coma_glucose_threshold, GameState.power_full_glucose, 0.0, 1.0)
+	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	return remap(clampf(glucose_val, GameState.coma_glucose_threshold, GameState.power_full_glucose), GameState.coma_glucose_threshold, GameState.power_full_glucose, 0.0, 1.0)
 
 
 func is_in_coma() -> bool:
-	return glucose < GameState.coma_glucose_threshold
+	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	return glucose_val < GameState.coma_glucose_threshold
 
 
 func can_player_enable() -> bool:
@@ -113,11 +121,13 @@ func _delta_if_fully_fed(request_units: float) -> float:
 
 
 func _get_status_condition_data() -> Dictionary:
-	return {"glucose": int(round(glucose))}
+	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	return {"glucose": int(round(glucose_val))}
 
 
 func _get_visual_energy_factor() -> float:
-	var hue_glucose := glucose if is_enabled else 30.0
+	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	var hue_glucose := glucose_val if is_enabled else 30.0
 	return _glucose_factor(hue_glucose)
 
 

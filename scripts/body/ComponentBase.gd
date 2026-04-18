@@ -9,12 +9,6 @@ const NODE_FILL_SHADER := preload("res://shaders/node_fill.gdshader")
 
 @export var required_power: float = 1.0
 @export var non_preferred_multiplier: float = 0.3
-## Per-instance polygon override. Non-empty replaces the type's default shape.
-@export var polygon_verts: PackedVector2Array = PackedVector2Array():
-	set(v):
-		polygon_verts = v
-		if is_node_ready():
-			_setup_shape()
 
 @onready var _polygon: Polygon2D = $Polygon
 @onready var _outline: Line2D = $Outline
@@ -35,7 +29,8 @@ signal unhovered(component)
 
 
 func _ready() -> void:
-	_setup_shape()
+	_configure_outline()
+	_ensure_shader_material()
 	if Engine.is_editor_hint():
 		return
 	add_to_group("worker_components")
@@ -47,29 +42,10 @@ func _ready() -> void:
 	_update_visual_state()
 
 
-func _setup_shape() -> void:
-	var verts := PackedVector2Array()
-	if not polygon_verts.is_empty():
-		verts = polygon_verts
-	elif not _polygon.polygon.is_empty():
-		verts = _polygon.polygon
-	else:
-		verts = _default_polygon_verts()
-
-	if not verts.is_empty():
-		_apply_verts(verts)
+func _configure_outline() -> void:
 	_outline.default_color = Color(1.0, 1.0, 1.0, 0.95)
 	_outline.width = 2.4
 	_outline.antialiased = true
-	_ensure_shader_material()
-
-
-func _apply_verts(verts: PackedVector2Array) -> void:
-	_polygon.polygon = verts
-	var line_points := verts.duplicate()
-	line_points.append(verts[0])
-	_outline.points = line_points
-	_collision.polygon = verts
 
 
 func _ensure_shader_material() -> void:
@@ -158,11 +134,6 @@ func _get_preferred_node_type() -> String:
 ## Virtual: properties dict forwarded to GameState.register_component_properties.
 func _get_registered_properties() -> Dictionary:
 	return {"required_power": required_power}
-
-
-## Virtual: default polygon vertices for brand-new instances.
-func _default_polygon_verts() -> PackedVector2Array:
-	return PackedVector2Array()
 
 
 ## Virtual: shader primary color when the component is activated.
