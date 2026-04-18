@@ -68,14 +68,22 @@ text = "Sensors"
 [node name="Sensors" type="VBoxContainer" parent="Root/Sidebar" unique_id=1040315920]
 layout_mode = 2
 
-[node name="OpticalToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=599920869]
+[node name="RadioToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=599920869]
 layout_mode = 2
 button_pressed = true
-text = "Optical"
+text = "Radio"
 
-[node name="ThermalToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
+[node name="HeatToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
 layout_mode = 2
-text = "Thermal"
+text = "Heat"
+
+[node name="LightToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1877300193]
+layout_mode = 2
+text = "Light"
+
+[node name="GammaToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1450283312]
+layout_mode = 2
+text = "Gamma"
 
 [node name="GravityToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1500829688]
 layout_mode = 2

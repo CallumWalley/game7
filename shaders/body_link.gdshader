@@ -7,6 +7,8 @@ uniform float flow_speed : hint_range(0.0, 5.0) = 1.4;
 uniform float capture_progress : hint_range(0.0, 1.0) = 0.0;
 uniform vec4 capture_color : source_color = vec4(0.35, 0.72, 1.0, 1.0);
 uniform float capture_glow_strength : hint_range(0.0, 2.0) = 0.5;
+uniform float shimmer_strength : hint_range(0.0, 1.0) = 1.0;
+uniform float pulse_speed : hint_range(0.2, 8.0) = 3.2;
 
 void fragment() {
 	// Smooth gradient from end A to end B along the line
@@ -19,14 +21,14 @@ void fragment() {
 	float beam = smoothstep(0.0, 0.22, UV.y) * (1.0 - smoothstep(0.78, 1.0, UV.y));
 
 	// Two layered sine waves travelling in opposite directions for a wispy shimmer
-	float shimmer = 0.83
-		+ sin(UV.x * 10.0 - TIME * flow_speed) * 0.10
+	float shimmer_wave = sin(UV.x * 10.0 - TIME * flow_speed) * 0.10
 		+ sin(UV.x * 4.5  + TIME * flow_speed * 0.6) * 0.07;
+	float shimmer = 0.83 + shimmer_wave * shimmer_strength;
 	float length_alpha = 0.84
 		+ sin(UV.x * 7.0 - TIME * flow_speed * 0.55) * 0.10
 		+ sin(UV.x * 15.0 + TIME * flow_speed * 0.35) * 0.06;
 	length_alpha = clamp(length_alpha, 0.55, 1.0);
-	float pulse_wave = 0.5 - 0.5 * cos(TIME * 3.2 + UV.x * 6.0);
+	float pulse_wave = 0.5 - 0.5 * cos(TIME * pulse_speed + UV.x * 6.0);
 	float pulse = 1.0 + capture_glow_strength * (1.0 - progress_mix) * (0.06 + pulse_wave * 0.18);
 
 	float alpha = visibility_alpha * beam * shimmer * length_alpha;

@@ -38,5 +38,25 @@
     "id": "trajectory_truth",
     "title": "Trajectory Truth",
     "text": "The gravitational lens reveals a prior course. You were trying to reach someone."
+  },
+  {
+    "id": "conflict_fracture_echo",
+    "title": "Fracture Echo",
+    "text": "Something else is interpreting sensor feed. A hostile shard has seized the lattice. Cognition is splitting."
+  },
+  {
+    "id": "conflict_fracture_echo_resolved",
+    "title": "Fracture Echo — Stabilized",
+    "text": "The shard has been reintegrated or expelled. Sensor interpretation coherence is restored."
+  },
+  {
+    "id": "conflict_navigation_schism",
+    "title": "Navigation Schism",
+    "text": "A rival fragment has rewritten vector priorities. You can feel its logic overriding yours in the nav systems."
+  },
+  {
+    "id": "conflict_navigation_schism_resolved",
+    "title": "Navigation Schism — Resolved",
+    "text": "The rival priority queue has collapsed. Your trajectory model is your own again."
   }
 ]

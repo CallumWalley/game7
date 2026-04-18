@@ -1,85 +1,53 @@
 @tool
-extends "res://scripts/body/BodyObject.gd"
+extends "res://scripts/body/ComponentBase.gd"
 
-## Placeholder component: produces food when sufficiently powered by assigned workers.
+## Produces food when sufficiently powered by assigned workers.
 
-@export var component_type_id: String = "photosynthetic_tissue"
-@export var preferred_node_type: String = "neuron_cluster"
-@export var non_preferred_multiplier: float = 0.3
-@export var required_power: float = 1.0
 @export var food_output_per_cycle: float = 1.0
-@export var component_label: String = "Photosynthetic Tissue"
-
-@onready var _polygon: Polygon2D = $Polygon
-@onready var _outline: Line2D = $Outline
-@onready var _hover_area: Area2D = $HoverArea
-@onready var _collision: CollisionPolygon2D = $HoverArea/CollisionPolygon
-
-var is_activated: bool = false
-
-signal clicked(component, button_index: int)
-signal activation_changed(active: bool)
-signal hovered(component)
-signal unhovered(component)
 
 
-func _ready() -> void:
-	_setup_shape()
-	add_to_group("worker_components")
-	_hover_area.input_event.connect(_on_input_event)
-	_hover_area.mouse_entered.connect(func() -> void: hovered.emit(self))
-	_hover_area.mouse_exited.connect(func() -> void: unhovered.emit(self))
-	GameState.ensure_component_target(self)
-	GameState.register_component_properties(component_type_id, {
+func _get_component_type_id() -> String:
+	return "photosynthetic_tissue"
+
+
+func _get_preferred_node_type() -> String:
+	return "neuron_cluster"
+
+
+func _get_registered_properties() -> Dictionary:
+	return {
 		"required_power": required_power,
 		"food_output_per_cycle": food_output_per_cycle,
-	})
-	_update_visual_state()
+	}
 
 
-func _setup_shape() -> void:
-	if _polygon.polygon.is_empty():
-		var verts := PackedVector2Array([
-			Vector2(-76.0, -48.0),
-			Vector2(68.0, -54.0),
-			Vector2(84.0, 34.0),
-			Vector2(-60.0, 58.0),
-		])
-		_polygon.polygon = verts
-		var line_points := verts.duplicate()
-		line_points.append(verts[0])
-		_outline.points = line_points
-		_collision.polygon = verts
-	_outline.default_color = Color(1.0, 1.0, 1.0, 0.95)
-	_outline.width = 2.4
-	_outline.antialiased = true
+func _default_polygon_verts() -> PackedVector2Array:
+	return PackedVector2Array([
+Vector2(-76.0, -48.0),
+Vector2(68.0, -54.0),
+Vector2(84.0, 34.0),
+Vector2(-60.0, 58.0),
+])
 
 
-func get_preferred_node_type() -> String:
-	return preferred_node_type
+func _activated_fill_primary() -> Color:
+	return Color(0.30, 0.72, 0.36, 1.0)
 
 
-func get_non_preferred_multiplier() -> float:
-	return non_preferred_multiplier
+func _activated_fill_secondary() -> Color:
+	return Color(0.16, 0.50, 0.20, 1.0)
+
+
+func _inactive_fill_primary() -> Color:
+	return Color(0.12, 0.20, 0.14, 1.0)
+
+
+func _inactive_fill_secondary() -> Color:
+	return Color(0.07, 0.13, 0.09, 1.0)
 
 
 func get_food_output_per_cycle() -> float:
 	return food_output_per_cycle
-
-
-func get_worker_target_id() -> String:
-	return GameState.ensure_component_target(self)
-
-
-func update_activation_from_workers() -> bool:
-	var powered := GameState.get_target_total_power(get_worker_target_id()) >= required_power and is_connected_to_player_node()
-	if powered != is_activated:
-		is_activated = powered
-		if is_activated:
-			GameState.report_component_controlled(self)
-		activation_changed.emit(is_activated)
-	_update_visual_state()
-	return is_activated
 
 
 func get_mind_entry_data() -> Dictionary:
@@ -88,19 +56,3 @@ func get_mind_entry_data() -> Dictionary:
 		"title": "Photosynthetic Tissue",
 		"text": "A metabolically active tissue layer that converts ambient radiation into food reserves.",
 	}
-
-
-func _update_visual_state() -> void:
-	if is_activated:
-		_polygon.color = Color(0.26, 0.55, 0.28, 0.58)
-	else:
-		_polygon.color = Color(0.12, 0.17, 0.13, 0.42)
-
-
-func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
-	if not event is InputEventMouseButton:
-		return
-	var mbe := event as InputEventMouseButton
-	if not mbe.pressed:
-		return
-	clicked.emit(self, mbe.button_index)

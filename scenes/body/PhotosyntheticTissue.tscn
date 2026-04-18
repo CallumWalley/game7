@@ -1,16 +1,14 @@
-[gd_scene load_steps=2 format=3 uid="uid://photosynthetic_tissue"]
+[gd_scene format=3 uid="uid://cw63bphk0dqc8"]
 
-[ext_resource type="Script" path="res://scripts/body/PhotosyntheticTissue.gd" id="1_pt"]
+[ext_resource type="Script" uid="uid://8hdkfft76y2j" path="res://scripts/body/PhotosyntheticTissue.gd" id="1_pt"]
 
-[node name="PhotosyntheticTissue" type="Node2D"]
+[node name="PhotosyntheticTissue" type="Node2D" unique_id=1058606906]
 script = ExtResource("1_pt")
 
-[node name="Polygon" type="Polygon2D" parent="."]
-color = Color(0.12, 0.17, 0.13, 0.42)
+[node name="Polygon" type="Polygon2D" parent="." unique_id=451974705]
 
-[node name="Outline" type="Line2D" parent="."]
+[node name="Outline" type="Line2D" parent="." unique_id=349798126]
 
-[node name="HoverArea" type="Area2D" parent="."]
-input_pickable = true
+[node name="HoverArea" type="Area2D" parent="." unique_id=1968986023]
 
-[node name="CollisionPolygon" type="CollisionPolygon2D" parent="HoverArea"]
+[node name="CollisionPolygon" type="CollisionPolygon2D" parent="HoverArea" unique_id=36807488]

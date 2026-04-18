@@ -2,9 +2,20 @@
   {
     "id": "sunward_static",
     "title": "Sunward Static",
-    "required_sensors": ["optical"],
+    "system_id": "system0",
+    "kind": "sun",
+    "map_position": [-420, -120],
+    "observability_profile": {
+      "radio": 0.95,
+      "heat": 1.0,
+      "light": 1.0,
+      "gamma": 0.62,
+      "gravity": 0.8
+    },
+    "is_observable": true,
+    "required_sensors": ["light"],
     "sensor_requirements": {
-      "optical": 1
+      "light": 1
     },
     "unlock_condition": {},
     "reveals_memories": ["radiant_noise"],
@@ -18,10 +29,21 @@
   {
     "id": "asteroid_belt_echo",
     "title": "Asteroid Belt Echo",
-    "required_sensors": ["optical", "thermal"],
+    "system_id": "system0",
+    "kind": "rock_field",
+    "map_position": [180, -40],
+    "observability_profile": {
+      "radio": 0.35,
+      "heat": 0.48,
+      "light": 0.52,
+      "gamma": 0.12,
+      "gravity": 0.3
+    },
+    "is_observable": true,
+    "required_sensors": ["light", "heat"],
     "sensor_requirements": {
-      "optical": 1,
-      "thermal": 1
+      "light": 1,
+      "heat": 1
     },
     "unlock_condition": {
       "type": "body_node_unlocked",
@@ -38,15 +60,187 @@
   {
     "id": "l4_gravity_lens",
     "title": "L4 Gravity Lens",
-    "required_sensors": ["gravity"],
+    "system_id": "system0",
+    "kind": "curiosity",
+    "map_position": [540, 210],
+    "observability_profile": {
+      "radio": 0.12,
+      "heat": 0.05,
+      "light": 0.24,
+      "gamma": 0.88,
+      "gravity": 1.0
+    },
+    "is_observable": true,
+    "required_sensors": ["gravity", "gamma"],
     "sensor_requirements": {
-      "gravity": 1
+      "gravity": 1,
+      "gamma": 1
     },
     "unlock_condition": {
       "type": "body_node_unlocked",
       "id": "nav_core"
     },
     "reveals_memories": ["trajectory_truth"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
+  },
+  {
+    "id": "planet_blue_haze",
+    "title": "Blue Haze Planet",
+    "system_id": "system0",
+    "kind": "planet",
+    "map_position": [-120, 210],
+    "observability_profile": {
+      "radio": 0.26,
+      "heat": 0.18,
+      "light": 0.72,
+      "gamma": 0.09,
+      "gravity": 0.44
+    },
+    "is_observable": true,
+    "required_sensors": ["light"],
+    "sensor_requirements": {
+      "light": 1
+    },
+    "unlock_condition": {},
+    "reveals_memories": ["signal_hum"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
+  },
+  {
+    "id": "planet_cinder_ring",
+    "title": "Cinder Ring Planet",
+    "system_id": "system0",
+    "kind": "planet",
+    "map_position": [390, -260],
+    "observability_profile": {
+      "radio": 0.1,
+      "heat": 0.85,
+      "light": 0.28,
+      "gamma": 0.14,
+      "gravity": 0.58
+    },
+    "is_observable": true,
+    "required_sensors": ["heat"],
+    "sensor_requirements": {
+      "heat": 1
+    },
+    "unlock_condition": {},
+    "reveals_memories": ["maintenance_protocol"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
+  },
+  {
+    "id": "drift_rock_a",
+    "title": "Drift Rock A",
+    "system_id": "system0",
+    "kind": "rock",
+    "map_position": [80, 320],
+    "observability_profile": {
+      "radio": 0.02,
+      "heat": 0.11,
+      "light": 0.2,
+      "gamma": 0.01,
+      "gravity": 0.06
+    },
+    "is_observable": true,
+    "required_sensors": ["light"],
+    "sensor_requirements": {
+      "light": 1
+    },
+    "unlock_condition": {},
+    "reveals_memories": [],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
+  },
+  {
+    "id": "drift_rock_b",
+    "title": "Drift Rock B",
+    "system_id": "system0",
+    "kind": "rock",
+    "map_position": [650, 40],
+    "observability_profile": {
+      "radio": 0.03,
+      "heat": 0.1,
+      "light": 0.22,
+      "gamma": 0.02,
+      "gravity": 0.09
+    },
+    "is_observable": true,
+    "required_sensors": ["light"],
+    "sensor_requirements": {
+      "light": 1
+    },
+    "unlock_condition": {},
+    "reveals_memories": [],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
+  },
+  {
+    "id": "curious_relay",
+    "title": "Derelict Relay",
+    "system_id": "system0",
+    "kind": "curiosity",
+    "map_position": [-300, 280],
+    "observability_profile": {
+      "radio": 0.9,
+      "heat": 0.12,
+      "light": 0.18,
+      "gamma": 0.24,
+      "gravity": 0.16
+    },
+    "is_observable": true,
+    "required_sensors": ["radio"],
+    "sensor_requirements": {
+      "radio": 1
+    },
+    "unlock_condition": {},
+    "reveals_memories": ["course_correction"],
+    "on_observed": {
+      "unlock_memories": [],
+      "unlock_body_nodes": [],
+      "unlock_sensors": [],
+      "sensor_tiers": {}
+    }
+  },
+  {
+    "id": "player_start",
+    "title": "Player Start",
+    "system_id": "system0",
+    "kind": "player_spawn",
+    "map_position": [0, 0],
+    "observability_profile": {
+      "radio": 0.0,
+      "heat": 0.0,
+      "light": 0.0,
+      "gamma": 0.0,
+      "gravity": 0.0
+    },
+    "is_observable": false,
+    "required_sensors": [],
+    "sensor_requirements": {},
+    "unlock_condition": {},
+    "reveals_memories": [],
     "on_observed": {
       "unlock_memories": [],
       "unlock_body_nodes": [],

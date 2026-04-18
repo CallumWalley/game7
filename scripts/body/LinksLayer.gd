@@ -6,7 +6,7 @@ extends Node2D
 
 @export var clusters_root_path: NodePath = NodePath("../ClustersRoot")
 @export_group("Visual Tuning")
-@export_range(0.0, 1.0, 0.01) var neutral_wash_strength: float = 0.78
+@export_range(0.0, 1.0, 0.01) var neutral_wash_strength: float = 0.84
 @export_range(0.0, 3.0, 0.01) var capture_glow_intensity: float = 1.0
 @export_range(0.0, 4.0, 0.05) var capture_width_per_worker: float = 1.25
 
@@ -53,6 +53,13 @@ func _rebuild_lines() -> void:
 				continue
 			var line := _create_link_line()
 			_link_lines[key] = line
+	for component in _get_all_components():
+		for linked in component.get_linked_body_objects():
+			var key := _pair_key(str(component.get_path()), str(linked.get_path()))
+			if _link_lines.has(key):
+				continue
+			var line := _create_link_line()
+			_link_lines[key] = line
 
 
 func _refresh_lines(delta: float) -> void:
@@ -70,6 +77,14 @@ func _refresh_lines(delta: float) -> void:
 			var line: Line2D = _link_lines.get(key)
 			_apply_link_state(line, nc, linked, delta)
 			refreshed_keys[key] = true
+	for component in _get_all_components():
+		for linked in component.get_linked_body_objects():
+			var key := _pair_key(str(component.get_path()), str(linked.get_path()))
+			if refreshed_keys.has(key):
+				continue
+			var line: Line2D = _link_lines.get(key)
+			_apply_link_state(line, component, linked, delta)
+			refreshed_keys[key] = true
 
 
 func _get_all_clusters() -> Array:
@@ -83,6 +98,19 @@ func _collect_clusters_recursive(node: Node, result: Array) -> void:
 		if child.has_method("get_linked_clusters"):
 			result.append(child)
 		_collect_clusters_recursive(child, result)
+
+
+func _get_all_components() -> Array:
+	var result: Array = []
+	_collect_components_recursive(_clusters_root, result)
+	return result
+
+
+func _collect_components_recursive(node: Node, result: Array) -> void:
+	for child in node.get_children():
+		if child.has_method("get_worker_target_id"):
+			result.append(child)
+		_collect_components_recursive(child, result)
 
 
 func _apply_link_state(line: Line2D, a, b, delta: float) -> void:
@@ -106,7 +134,8 @@ func _apply_link_state(line: Line2D, a, b, delta: float) -> void:
 	line.points = _wavy_points(pos_a, pos_b)
 	var path_a := str(node_a.get_path())
 	var path_b := str(node_b.get_path())
-	var visual := _compute_link_visual_state(node_a, node_b, path_a, path_b)
+	var gameplay := _read_link_gameplay_state(node_a, node_b, path_a, path_b)
+	var visual := _compute_link_visual_state(gameplay)
 	var target_color_a: Color = visual.color_a
 	var target_color_b: Color = visual.color_b
 	var capture_progress: float = visual.capture_progress
@@ -156,15 +185,27 @@ func _smooth_pulse(phase: float) -> float:
 	return 0.5 - 0.5 * cos(phase)
 
 
-func _compute_link_visual_state(a, b, path_a: String, path_b: String) -> Dictionary:
-	var color_a: Color = a.get_link_display_color()
-	var color_b: Color = b.get_link_display_color()
+func _read_link_gameplay_state(a, b, path_a: String, path_b: String) -> Dictionary:
+	return {
+		"color_a": a.get_link_display_color(),
+		"color_b": b.get_link_display_color(),
+		"owner_a": int(a.get("controlling_entity")),
+		"owner_b": int(b.get("controlling_entity")),
+		"capture_progress": GameState.get_capture_progress_for_link(path_a, path_b),
+		"capture_worker_count": _capture_worker_count(path_a, path_b),
+		"player_color": GameState.get_entity_color(GameState.ENTITY_PLAYER),
+	}
+
+
+func _compute_link_visual_state(state: Dictionary) -> Dictionary:
+	var color_a: Color = state.get("color_a", COLOR_DETECTED)
+	var color_b: Color = state.get("color_b", COLOR_DETECTED)
 	var wash_neutral := lerpf(0.58, 0.88, neutral_wash_strength)
 	var wash_mixed := lerpf(0.36, 0.68, neutral_wash_strength)
 	var alpha_neutral := lerpf(0.26, 0.08, neutral_wash_strength)
 	var alpha_mixed := lerpf(0.38, 0.16, neutral_wash_strength)
-	var owner_a := int(a.get("controlling_entity"))
-	var owner_b := int(b.get("controlling_entity"))
+	var owner_a := int(state.get("owner_a", GameState.ENTITY_NONE))
+	var owner_b := int(state.get("owner_b", GameState.ENTITY_NONE))
 	if owner_a == GameState.ENTITY_NONE and owner_b == GameState.ENTITY_NONE:
 		color_a = _wash_color(color_a, wash_neutral)
 		color_b = _wash_color(color_b, wash_neutral)
@@ -176,10 +217,10 @@ func _compute_link_visual_state(a, b, path_a: String, path_b: String) -> Diction
 		color_a.a *= alpha_mixed
 		color_b.a *= alpha_mixed
 
-	var capture_progress := GameState.get_capture_progress_for_link(path_a, path_b)
-	var capture_worker_count := _capture_worker_count(path_a, path_b)
+	var capture_progress := float(state.get("capture_progress", 0.0))
+	var capture_worker_count := int(state.get("capture_worker_count", 0))
 	if capture_progress > 0.0:
-		var player_color := GameState.get_entity_color(GameState.ENTITY_PLAYER)
+		var player_color: Color = state.get("player_color", CAPTURE_PROGRESS_COLOR)
 		var blend := clampf(capture_progress * CAPTURE_OWNER_BLEND, 0.0, 1.0)
 		color_a = color_a.lerp(player_color, blend)
 		color_b = color_b.lerp(player_color, blend)

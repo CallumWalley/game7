@@ -1,181 +1,57 @@
-# Implementation Gaps and Resolutions
+# Implementation Gaps
 
-This file tracks contradictions, missing pieces, and concrete proposals.
+## Purpose
+Track confirmed design/implementation drift, integration risks, and the smallest changes that keep Body, Mind, Environment, UI, and Story coherent.
 
-## Contradictions found and proposed resolutions
+## Resolved
 
-1. Document naming mismatch
-- Issue: some docs referenced `story.md` while file is `STORY.md`.
-- Resolution: normalize references to `STORY.md`.
+### Missing implementation-gap reference doc
+- Problem: `DESIGN.md`, `README.md`, and `OBJECT_STRUCTURE.md` referenced `IMPLEMENTATION_GAPS.md`, but the file did not exist.
+- Fix: created this file and aligned doc references.
 
-2. Body-local key vs global key
-- Issue: Body had an extra key panel while Main already had global key.
-- Resolution: remove Body-local key and keep global key as single source.
+### Duplicate component token rendering logic
+- Problem: component text token substitution existed in both `GameState` and `MindView`, risking drift between runtime memory rendering and UI rendering.
+- Fix: `MindView` now uses `GameState.render_component_text(...)` as SSOT.
 
-3. Icon style drift
-- Issue: world worker markers differed from key icons.
-- Resolution: shared icon geometry + color + stroke helpers now drive all worker icon contexts.
+### Environment refresh dead local logic
+- Problem: `EnvironmentView._refresh()` built sensor/object temporary values that were never consumed.
+- Fix: removed dead locals; replaced with `_build_sensor_text()` helper that is actively consumed.
 
-## Implemented
+### Body architecture docs mention `GeometricNode`, runtime uses `ThoughtNode`
+- Problem: `OBJECT_STRUCTURE.md` described a phantom `GeometricNode` abstract layer; no such class exists.
+- Fix: corrected inheritance docs to `ThoughtNode` → `NerveCluster` / `ArithmeticProcessor` / `QuantumCalculator`.
 
-### Component memory progression (states 0 / 1 / 2)
-- `data/component_mind_entries.json`: SSOT for all component entry configs — state content, variable gates, `{token}` substitutions.
-- `GameState`: tracks `component_memory_states`, `component_memory_vars`, `_component_first_hovered`, `_component_properties` per `component_type_id`. Key functions: `on_component_first_hovered`, `on_component_captured`, `set_component_memory_var`, `get_component_memory_var`, `register_component_properties`, `get_component_property`, `get_controlled_component_count`.
-- Trigger state 1: first hover → `GameState.on_component_first_hovered` (called from `BodyView._on_component_hovered`).
-- Trigger state 2: activation → `GameState.report_component_controlled` → `on_component_captured`.
-- `MindView`: renders `text_segments` arrays with inline `{token}` substitution for live runtime values.
-- `MindView`: typewriter variable gate via `VariableSelector` (OptionButton) — display stops at an unresolved `variable` segment; continues after player picks an option from the dropdown.
-- Adding new entries: add `component_type_id` export + `register_component_properties` call on the component script, then add a JSON entry in `data/component_mind_entries.json`. No further code changes required. See `DESIGN.md` for full schema.
+### Fragment conflict autoload ownership — decided: keep stub
+- Decision: `FragmentConflictSystem` remains autoloaded as a named stub. Zero runtime callsites; all method bodies return empty/false/zero. Keeping the autoload preserves the global namespace so future code can call `FragmentConflictSystem.get_active_conflicts()` without touching `project.godot`. Risk of misleading architecture is fully mitigated by doc notes in `DESIGN.md`, `README.md`, and `OBJECT_STRUCTURE.md`.
+- No further action required until conflict behavior is implemented.
 
-### Memory unread state and read tracking
-- `GameState.memory_read_state: Dictionary` maps entry id → bool (true = read).
-- `GameState.mark_memory_read(id)` / `is_memory_read(id)` expose read state.
-- `GameState._set_component_memory_state` calls `_clear_component_memory_read_state` before emitting `state_changed` — state advancement always resets the entry to unread.
-- `MindView._populate_list` colours unread items with `UNREAD_COLOR` (amber). Colour reverts to white on read via `_update_list_item_read_state`.
+### DebugVisibilityManager ownership split — decided: won't split
+- Analysis: the three concerns (UI visibility gating, worker-type encounter tracking, debug runtime options) are correctly co-owned by one manager — they are all developer-controlled state that the panel `DebugVisibilityPanel.gd` consumes together. Signals are already distinct (`visibility_changed`, `debug_mode_changed`, `option_changed`). Internal dictionary separation is sufficient. Splitting to two autoloads would add file/callsite overhead with no coherence improvement.
+- `_match_option_to_system()` is the only coupling point outward (routes `push_scroll` and `log_food_ticks` back to GameState); this is intentional and correct.
 
-### Typewriter animation
-- Character-by-character reveal driven by `_process` in `MindView` using `RichTextLabel.visible_characters`.
-- Speed tunable via `TYPEWRITER_SPEED` constant (default 40 chars/sec).
-- Animation only runs when `MindView.is_visible_in_tree()` — pauses while the tab is hidden, resumes when the player opens Mind view.
-- Completing animation with no pending variable gate calls `mark_memory_read` and updates the list colour.
-- Guard in `_display_entry`: if the same entry is already animating, the call is a no-op (prevents `state_changed` side effects from restarting the animation mid-read).
-- `EventBus.component_memory_state_changed` forces a display restart so state-1 → state-2 transition while the entry is visible plays the new text immediately.
-- User clicking a different entry (or the same entry again via `_on_entry_selected`) sets `_typewriter_active = false` before calling `_display_entry`, bypassing the guard and starting fresh.
+### Environment decode worker task — not a placeholder
+- Analysis: `env_task_signal_decode` is a functioning named-task that uses `GameState.ensure_named_task_target()` and drives a real progression loop (worker power → decode progress → sensor unlock → observation → memory recall). It is not a placeholder; it is a live integration point between Worker economy, ProgressionSystem, and ObservationSystem. UX labeling as "decode" is accurate.
 
-### Component mind entry image
-- `polygon_verts`, `fill_color`, `outline_color` stored at the component level in `data/component_mind_entries.json`.
-- `GameState.get_component_shape_data(type_id)` returns a typed dict with `PackedVector2Array` verts and `Color` values.
-- `scripts/mind/ComponentShapePreview.gd`: minimal `Control` subclass that overrides `_draw()` to fill-and-outline the polygon, scaled to fit the control rect with 0.82 padding.
-- Added as a node in `MindView.tscn` with `custom_minimum_size = Vector2(0, 100)`, visible only when the selected entry has a `component_type_id`.
+### Environment map was static art — implemented first data-driven system map
+- Problem: Environment map visuals were authored as static polygons with no object-space data and no player-centric navigation model.
+- Fix: `data/environment_objects.json` now includes `system_id`, `kind`, `map_position`, `observability_profile` (`radio`, `heat`, `light`, `gamma`, `gravity`), and `is_observable`. `EnvironmentMap.gd` now builds `system0` objects from this data, owns player movement physics state, and publishes it to `EnvironmentView` for player-centered fixed-orientation camera behavior.
 
-### MindView entry selection persistence on refresh
-- `_refresh_entries` records the currently selected entry id via `_get_selected_entry_id()` before rebuilding the list.
-- After `_populate_list()`, `_find_entry_index_by_id()` locates the same entry and re-selects it.
-- Falls back to index 0 if the entry was removed (e.g., hidden by a state rollback).
+## Current Gaps
 
-## Missing pieces needed for full system
+### Fragment conflict loop — implemented
+- Systems: Story, Body, Mind, shared-state progression
+- Files: `autoload/FragmentConflictSystem.gd`, `data/fragment_conflicts.json`, `data/mind_entries.json`, `autoload/ProgressionSystem.gd`
+- Status: implemented
+- Loop: `_load_conflicts()` reads `fragment_conflicts.json` on ready; `_on_state_changed()` is subscribed to `GameState.state_changed` and calls `_try_activate_conflict()` for any un-activated, un-resolved conflict; activation requires `required_memory` in `GameState.unlocked_memories` AND `GameState.cycle >= trigger_cycle`; on activation: `GameState.mark_node_contested(node_id)` + `GameState.unlock_memory("conflict_<id>")` + `EventBus.fragment_node_contested.emit(node_id)`; `resolve_conflict(node_id)` clears contested state, unlocks `"conflict_<id>_resolved"` memory entry, and emits `EventBus.fragment_node_stabilized`.
+- ProgressionSystem stage gating: `_compute_body_progress_stage()` now deducts contested node count from `unlocked_body_count`, so contested body regions cannot advance body stage until resolved.
+- Mind narrative: conflict activation and resolution each unlock a corresponding `mind_entries.json` entry surfaced in MindView (e.g. "Fracture Echo", "Fracture Echo — Stabilized").
+- Remaining gap: `BodyView` map does not surface contested state visually. The contested node IDs (`sensor_array`, `nav_core`) are abstract progression keys; map-level coloring requires a mapping from progression ID to scene node identity.
 
-1. Advanced node energy states (sleep/normal/boost)
-- Need: design specifies richer state model than current enabled/disabled toggle.
-- Proposed implementation:
-  - Replace boolean `is_enabled` with enum state + boost level.
-  - Recompute food request/power from state model.
-  - Add input rules for single-click wake and double-click boost.
+### Observation → memory recall loop — verified working
+- The pipeline is fully wired: `EnvironmentView._observe_next()` → `ObservationSystem.observe_object()` → `ProgressionSystem.record_environment_observation()` → `GameState.record_observation()` + `GameState.unlock_memory()` + `EventBus.environment_observed.emit()`. Environment object data in `environment_objects.json` carries `reveals_memories` entries that match IDs in `mind_entries.json`. No implementation work needed.
 
-6. Fragment competition model
-- Need: non-player fragment behavior and control contests.
-- Proposed implementation:
-  - Add fragment entities in `GameState`.
-  - Implement pressure accumulation/decay in `FragmentConflictSystem`.
-  - Expose fragment state overlays in Body view.
+## Integration Sequencing
 
-## Easily implementable next items
+1. **Fragment conflict → Body visual mapping** — the only remaining fragment conflict gap. `GameState.contested_body_nodes` holds abstract progression keys (`sensor_array`, `nav_core`). Body map ThoughtNodes are identified by scene node `name`. A mapping from progression key → on-map scene name is needed before contested state can color or badge nodes on the body map. Lowest-urgency gap since MindView already surfaces conflict text entries when activated. Files: `scripts/body/BodyView.gd`, `scripts/body/ThoughtNode.gd`, `data/fragment_conflicts.json` (add `scene_node_name` field).
 
-1. Show resistance in non-debug hover text for unowned targets.
-2. Add sorting or compact grouping option for worker icon strips when counts get large.
-
-## Reuse-first extensible environment framework (proposed)
-
-Goal: keep Environment mechanics fully data-driven while reusing `GameState`, `TimeSystem`, `EventBus`, `ObservationSystem`, and `ProgressionSystem` as the only cross-view authorities.
-
-### Core principles
-
-1. One generic task model in `GameState`
-- Continue using `worker_targets` as the shared task authority for capture, components, and environment actions.
-- Add task metadata fields instead of new parallel managers (`domain`, `action_id`, `target_ref`, `completion_payload`).
-- Keep worker assignment, power math, and progress rules in one place.
-
-2. One condition evaluator for all gates
-- Replace duplicate condition evaluation in `ObservationSystem` with shared `ConditionEvaluator` usage.
-- Use the same condition schema for body unlocks, environment visibility, observations, and progression triggers.
-
-3. Event-driven progression only
-- Keep `EventBus` as the boundary between systems.
-- Environment systems emit facts (`environment_object_spotted`, `environment_object_observed`, `sensor_strength_changed`) and `ProgressionSystem` translates facts into unlocks.
-- Avoid direct unlock writes from view scripts.
-
-4. Data-first environment definitions
-- Extend `data/environment_objects.json` entries with optional movement/sensor/observation fields:
-  - `visibility_rule`
-  - `observation_rule`
-  - `movement_rule`
-  - `on_observed` (memory unlocks, sensor unlocks, body node unlock hooks)
-- Keep `EnvironmentView` as a presenter and input adapter, not a rules owner.
-
-### Decisions locked for current milestone
-
-1. Sensor tiers use integers.
-- Tier `0` means unavailable.
-- Tier `1+` means available and can satisfy per-object minimum requirements.
-
-2. Movement spends cycles only.
-- Movement itself consumes cycle cost (`TimeSystem` action cost).
-- Any prerequisite component operation (for example, route plotting or stabilization) can still require workers via normal `GameState.worker_targets` tasks.
-
-3. Observation payload contract (`on_observed`)
-- `unlock_memories: Array[String]`
-- `unlock_body_nodes: Array[String]`
-- `unlock_sensors: Array[String]` (grants tier 1)
-- `sensor_tiers: Dictionary[String, int]` (explicit tier upgrades)
-- Payload is interpreted only by `ProgressionSystem` to keep one progression authority.
-
-### Ownership model by system
-
-1. `GameState`
-- Owns canonical environment runtime state:
-  - discovered objects
-  - observed objects
-  - sensor strengths (not only unlocked boolean)
-  - current environment position/node
-  - active environment tasks in `worker_targets`
-
-2. `ObservationSystem`
-- Owns evaluation of object visibility and observability.
-- Reads object definitions and asks `ConditionEvaluator` to evaluate rules.
-- Emits observation domain events through `EventBus`.
-
-3. `TimeSystem`
-- Owns cycle costs for environment actions (`scan`, `observe`, `move`, `stabilize`).
-- No environment rule logic beyond time cost accounting.
-
-4. `ProgressionSystem`
-- Subscribes to EventBus environment events.
-- Applies unlock consequences (mind entries, sensors, body node gates).
-- Keeps all cross-domain progression consequences centralized.
-- Owns progression fact tracking (`progression_flags`) so Body, Environment, and Mind can query a single progression authority.
-
-5. `EnvironmentView`
-- Reads projected state and sends intents only:
-  - toggle sensor mode
-  - assign/remove workers on environment tasks
-  - observe selected object
-  - move to adjacent environment node
-- Never directly computes unlock/visibility outcomes.
-
-### Minimal implementation phases
-
-1. De-duplicate condition logic
-- Move environment requirement checks to `ConditionEvaluator` and delete local duplicate evaluator from `ObservationSystem`.
-
-2. Promote sensors from boolean unlocks to strength tiers
-- Keep backward compatibility by treating unlocked sensors as strength >= 1.
-- Add optional per-object minimum sensor strength requirements.
-
-3. Add environment graph + movement gating
-- New data file for environment nodes/edges and movement requirements.
-- Reuse `TimeSystem.spend_for_action("move")` and `ConditionEvaluator` for move validity.
-
-4. Convert observe flow to explicit intents and events
-- `EnvironmentView` sends observe intent for a selected object id.
-- `ObservationSystem` validates and emits `environment_observed`.
-- `ProgressionSystem` resolves `on_observed` payload.
-
-5. Hook observation outcomes to progression payloads
-- Data payload supports memory unlocks, sensor upgrades, body node unlock requests, and fragment pressure changes.
-
-### Why this fits the current codebase
-
-1. Reuses existing worker/task infrastructure in `GameState` instead of creating an environment-only assignment system.
-2. Reuses existing action cost path in `TimeSystem`.
-3. Reuses existing event topology in `EventBus`.
-4. Preserves the design rule that Body, Environment, and Mind are projections over one shared simulation state.
+2. **Continue SSOT cleanup** opportunistically when duplication is visible during active feature work.

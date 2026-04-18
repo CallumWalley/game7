@@ -25,6 +25,15 @@ func get_visible_objects() -> Array[Dictionary]:
 			result.append(obj_data)
 	return result
 
+
+func get_system_objects(system_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for obj_data in environment_objects:
+		if str(obj_data.get("system_id", "")) != system_id:
+			continue
+		result.append(obj_data)
+	return result
+
 func get_next_observable_id() -> String:
 	for obj_data in get_visible_objects():
 		var obj_id: String = str(obj_data.get("id", ""))
@@ -46,6 +55,9 @@ func observe_object(object_id: String) -> Dictionary:
 	return {"success": true, "id": object_id}
 
 func _requirements_met(obj_data: Dictionary) -> bool:
+	if not bool(obj_data.get("is_observable", true)):
+		return false
+
 	for sensor_id in obj_data.get("required_sensors", []):
 		if GameState.get_sensor_tier(str(sensor_id)) < 1:
 			return false

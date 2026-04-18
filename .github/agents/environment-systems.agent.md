@@ -1,6 +1,6 @@
 ---
 name: Environment Systems
-description: "Use when implementing or refactoring environment mechanics: sensors, environment map behavior, movement, observations, visibility rules, or environment-side progression hooks. Do not use for UI-only hierarchy work, story-only consistency edits, or body-only mechanic changes."
+description: "Use when implementing or refactoring environment mechanics: sensors, environment map behavior, movement, observations, visibility rules, or environment-side progression hooks. Do not use for UI-only hierarchy work, story-only consistency edits, body-only mechanic changes, or shader/visual-effects implementation (e.g. fog-of-war shader tuning, vision reveal effects)."
 tools: [read, edit, search, execute]
 model: "GPT-5 (copilot)"
 argument-hint: "Describe the environment mechanic, sensor rule, movement behavior, or map system to change"
@@ -13,10 +13,10 @@ Keep environment-side mechanics coherent across sensors, movement, map interacti
 
 ## Constraints
 - Treat the Environment view as a gameplay system, not just a presentation layer.
-- Keep sensor visibility, movement, and observation rules explicit and data-driven.
+- Keep sensor visibility, movement, and observation rules explicit and data-driven. Delegate fog-of-war shader tuning and vision-reveal visual effects to the Visual Effects agent.
 - Reuse shared state and events instead of duplicating environment-side trackers.
 - Preserve links between environment discoveries, mind progression, and body unlock consequences.
-- Keep naming and terminology consistent with project docs.
+- Keep naming and terminology consistent with `DESIGN.md` and `OBJECT_STRUCTURE.md`.
 
 ## Workflow
 1. Identify the exact environment mechanic or visibility rule that needs work.

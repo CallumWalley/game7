@@ -6,6 +6,7 @@ Narrative exploration game where the player is a sentient vessel rebuilding iden
 ## Document map
 - Core architecture and object relationships: `OBJECT_STRUCTURE.md`
 - User interface and interaction notes: `UI.md`
+- Visual design, aesthetic identity, and shader references: `VISUAL_DESIGN.md`
 - Narrative and story structure: `STORY.md`
 - Open implementation issues and proposals: `IMPLEMENTATION_GAPS.md`
 
@@ -28,6 +29,9 @@ Narrative exploration game where the player is a sentient vessel rebuilding iden
 - Body, Environment, and Mind are different views over the same simulation state.
 - Time progression is explicit and player-readable.
 - Resource pressure creates meaningful prioritization.
+
+## Current implementation note
+- Fragment conflict mechanics drive Act 2 progression gates. The runtime conflict loop is now implemented in `FragmentConflictSystem`: conflicts activate when their `required_memory` is unlocked and `trigger_cycle` is reached; resolution emits `EventBus.fragment_node_stabilized`. Conflict data lives in `data/fragment_conflicts.json`.
 
 ## Economy and pacing
 
@@ -62,6 +66,9 @@ Each task/component has a preferred node type.
 - Removal priority:
 	1. least numerous non-preferred first
 	2. preferred last
+- If active worker capacity drops below assigned workers, overflow workers are auto-removed in this order:
+	1. tasks first (capture and named tasks)
+	2. components second
 
 ### Tasks (capture)
 Capturing an unowned node is a task.
@@ -70,7 +77,8 @@ Capturing an unowned node is a task.
 - Left/right click on unowned node adds/removes assigned workers.
 - Assigned worker symbols appear on the source-target link.
 - Link color indicates capture progress.
-- Resistance is subtracted from worker power each cycle.
+- Capture pressure resistance starts low and scales with conversion ratio each cycle.
+- This creates a stable equilibrium when assigned power is lower than node resistance.
 - If no workers remain, capture progress decays over time.
 
 ### Components
@@ -102,6 +110,17 @@ Mind view contains memory entries.
 
 - Entries may be unlocked by game conditions.
 - Runtime entries are added via the component memory progression system (see below).
+
+### Knowledge progression states
+
+Every piece of player knowledge moves through four stages. Preserve these distinctions when designing triggers, UI, and content:
+
+| Stage | Description |
+|---|---|
+| **Observation** | The player senses something in the environment without understanding it. No entry exists yet, or entry is hidden (state 0). |
+| **Unlock** | The entry becomes available (state 1 triggered). Knowledge exists but is incomplete — sensory, pre-functional. |
+| **Unread** | The entry is available but the player has not yet read it. UI should highlight unread entries. |
+| **Integrated** | The player has read and engaged with the entry; the system has advanced to state 2 where applicable. Full functional knowledge. |
 
 ### Component memory progression
 
@@ -138,6 +157,30 @@ Each item in the array defines:
 2. Call `GameState.register_component_properties(component_type_id, {"required_power": ..., "food_output_per_cycle": ...})` in `_ready()`.
 3. Add an entry object to `data/component_mind_entries.json` with the matching `component_type_id`, a `mind_entry_id`, and `states[]`.
 4. Triggers and display are automatic.
+
+### Progression core memories (main/body/environment)
+
+Core progression memories are authored in `data/progression_mind_entries.json` and resolved by `ProgressionSystem`.
+
+- `waking_fragment` is now a staged main-story entry (`track: "main_story"`).
+- `body_function_log` tracks Body capability progression (`track: "body"`).
+- `environment_function_log` tracks Environment capability progression (`track: "environment"`).
+
+Schema per entry:
+- `id: String` (must be unique)
+- `track: "main_story" | "body" | "environment"`
+- `states: Array[{ stage: int, title: String, text: String }]`
+
+Selection rule:
+- Runtime selects the highest `states[].stage` less than or equal to current computed stage.
+- Entries are registered as dynamic mind entries, which allows them to update over time.
+- If a stage advances, the entry is marked unread again by clearing its read-state flag.
+
+Authoring rules:
+- Keep stage values monotonic (`0, 1, 2, ...`) with no duplicate stage numbers.
+- Treat `stage 0` as baseline text shown at game start.
+- Use these entries for progression recaps only; keep one-off discoveries in `mind_entries.json` or component state entries.
+- Reusing an id from `mind_entries.json` is allowed for intentional override (used by `waking_fragment`).
 
 ---
 

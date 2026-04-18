@@ -37,5 +37,83 @@
         ]
       }
     ]
+  },
+  {
+    "component_type_id": "membranous_labyrinth",
+    "mind_entry_id": "component_membranous_labyrinth",
+    "polygon_verts": [[-62, -18], [-18, -54], [36, -46], [66, -8], [54, 38], [6, 50], [-40, 30]],
+    "fill_color": [0.22, 0.52, 0.78, 0.60],
+    "outline_color": [1.0, 1.0, 1.0, 0.95],
+    "states": [
+      {
+        "state": 1,
+        "title": "Unknown Structure",
+        "text_segments": [
+          {
+            "type": "text",
+            "content": "A coiled fluid-filled cavity, tucked against one of the larger processing clusters. Its geometry is almost architectural — precise curves, sealed membranes, no obvious input or output."
+          },
+          {
+            "type": "variable",
+            "key": "labyrinth_initial_impression",
+            "prompt": "The shape reminds you of:",
+            "options": ["a cochlea", "a nautilus shell", "a collapsed tunnel", "something you've forgotten"]
+          },
+          {
+            "type": "text",
+            "content": "\n\nNot yet under your control."
+          }
+        ]
+      },
+      {
+        "state": 2,
+        "title": "Membranous Labyrinth",
+        "text_segments": [
+          {
+            "type": "text",
+            "content": "A fluid-filled sensory organ. Processes directional and spatial signal gradients, improving the clarity of information reaching connected nodes. Requires {required_power} power unit(s) to sustain. Each active unit contributes {signal_clarity_per_cycle} clarity per cycle.\n\nCurrently controlled: {controlled_count} unit(s)."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "component_type_id": "adipose_tissue",
+    "mind_entry_id": "component_adipose_tissue",
+    "polygon_verts": [[-52, -22], [-14, -58], [34, -56], [66, -16], [64, 28], [22, 60], [-28, 54], [-60, 14]],
+    "fill_color": [0.78, 0.60, 0.18, 0.60],
+    "outline_color": [1.0, 1.0, 1.0, 0.95],
+    "states": [
+      {
+        "state": 1,
+        "title": "Unknown Deposit",
+        "text_segments": [
+          {
+            "type": "text",
+            "content": "A dense, pale deposit. No motion. It just sits there."
+          },
+          {
+            "type": "variable",
+            "key": "adipose_initial_impression",
+            "prompt": "Your first reaction is:",
+            "options": ["curiosity", "unease", "recognition", "nothing in particular"]
+          },
+          {
+            "type": "text",
+            "content": "\n\nNot yet under your control."
+          }
+        ]
+      },
+      {
+        "state": 2,
+        "title": "Adipose Tissue",
+        "text_segments": [
+          {
+            "type": "text",
+            "content": "A metabolic buffer. Absorbs surplus food during high-supply cycles and releases stored reserves during lean periods, smoothing delivery to connected nodes. Requires {required_power} power unit(s). Each active unit contributes {storage_units_per_cycle} storage per cycle.\n\nCurrently controlled: {controlled_count} unit(s)."
+          }
+        ]
+      }
+    ]
   }
 ]

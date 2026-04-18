@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" path="res://scenes/environment/EnvironmentView.tscn" id="4_env"]
 [ext_resource type="Theme" path="res://assets/ui/GameTheme.tres" id="5_theme"]
 [ext_resource type="Script" path="res://scripts/ui/NodeTypeIcon.gd" id="6_type_icon"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DebugVisibilityPanel.tscn" id="7_debug"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SettingsMenu.tscn" id="8_settings"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_nav"]
 
@@ -59,7 +61,7 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/NeuronGroup"]
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 script = ExtResource("6_type_icon")
 
@@ -72,7 +74,7 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/ArithmeticGroup"]
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 script = ExtResource("6_type_icon")
 node_type = "arithmetic_processor"
@@ -86,7 +88,7 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/QuantumGroup"]
-custom_minimum_size = Vector2(18, 18)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 script = ExtResource("6_type_icon")
 node_type = "quantum_calculator"
@@ -184,3 +186,7 @@ size_flags_horizontal = 3
 text = "Environment"
 toggle_mode = true
 button_group = SubResource("ButtonGroup_nav")
+
+[node name="DebugVisibilityPanel" parent="." instance=ExtResource("7_debug")]
+
+[node name="SettingsMenu" parent="." instance=ExtResource("8_settings")]

@@ -50,11 +50,18 @@ func set_fill_colors(polygon: Polygon2D, primary: Color, secondary: Color) -> vo
 	shader_material.set_shader_parameter("secondary_color", secondary)
 
 
+func set_fill_effects(polygon: Polygon2D, ownership_pulse_strength: float, capture_flash_strength: float) -> void:
+	var shader_material := polygon.material as ShaderMaterial
+	shader_material.set_shader_parameter("ownership_pulse_strength", clampf(ownership_pulse_strength, 0.0, 1.0))
+	shader_material.set_shader_parameter("capture_flash_strength", clampf(capture_flash_strength, 0.0, 1.0))
+
+
 func get_fill_colors(data: Dictionary) -> Array[Color]:
 	var controlling_entity: int = int(data.get("controlling_entity", 0))
 	var none_entity: int = int(data.get("none_entity", 0))
 	var owner_none_color: Color = data.get("owner_none_color", Color.WHITE)
 	var owner_player_color: Color = data.get("owner_player_color", Color(0.35, 0.62, 1.0, 1.0))
+	var owner_color: Color = data.get("owner_color", owner_player_color)
 	var node_tint: Color = data.get("node_tint", Color(1, 1, 1, 1))
 	var start_node: bool = bool(data.get("start_node", false))
 	var neutral_wash_amount: float = float(data.get("neutral_wash_amount", 0.5))
@@ -74,12 +81,12 @@ func get_fill_colors(data: Dictionary) -> Array[Color]:
 	var ownership_contrast_player: float = float(data.get("ownership_contrast_player", 1.0))
 	var player_entity: int = int(data.get("player_entity", 1))
 	var disabled_wash_amount: float = float(data.get("disabled_wash_amount", 0.62))
+	var personality_persistence_strength: float = float(data.get("personality_persistence_strength", 0.12))
+	var personality_neutral_scale: float = float(data.get("personality_neutral_scale", 0.42))
 
-	var owner_base_color := owner_player_color
+	var owner_base_color := owner_color
 	if controlling_entity == none_entity:
 		owner_base_color = _wash_out(owner_none_color, neutral_wash_amount)
-	elif not Engine.is_editor_hint():
-		owner_base_color = GameState.get_entity_color(controlling_entity)
 
 	var innate_tint := owner_player_color if start_node else node_tint
 	innate_tint.a = 1.0
@@ -127,6 +134,12 @@ func get_fill_colors(data: Dictionary) -> Array[Color]:
 		is_in_coma,
 		disabled_wash_amount
 	)
+
+	var personality_strength := personality_persistence_strength
+	if controlling_entity == none_entity:
+		personality_strength *= personality_neutral_scale
+	primary = _apply_personality_signature(primary, innate_tint, personality_strength)
+	secondary = _apply_personality_signature(secondary, innate_tint, personality_strength * 0.85)
 	return [primary, secondary]
 
 
@@ -213,3 +226,10 @@ func _wash_out(color: Color, amount: float) -> Color:
 		lerpf(color.b, gray, a),
 		color.a
 	)
+
+
+func _apply_personality_signature(base: Color, personality: Color, strength: float) -> Color:
+	var s := clampf(strength, 0.0, 1.0)
+	var signature := personality
+	signature.a = base.a
+	return base.lerp(signature, s)

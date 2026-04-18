@@ -6,6 +6,7 @@ Godot 4 prototype for a narrative systems game about rebuilding cognition and co
 
 - `DESIGN.md`: game design intent, mechanics, and priorities.
 - `UI.md`: UX layout, interaction language, and presentation rules.
+- `VISUAL_DESIGN.md`: visual identity, aesthetic palette, and shader references.
 - `OBJECT_STRUCTURE.md`: runtime architecture, class ownership, and data flow.
 - `STORY.md`: narrative direction and tonal guidance.
 - `IMPLEMENTATION_GAPS.md`: contradictions, missing pieces, and implementation proposals.
@@ -37,4 +38,6 @@ Godot 4 prototype for a narrative systems game about rebuilding cognition and co
 
 ## Status note
 
-This repo is intentionally hybrid: core worker/capture loop is implemented, while several narrative and progression systems are still placeholder-level. See `IMPLEMENTATION_GAPS.md` for the exact delta.
+This repo is intentionally hybrid: core worker/capture loop is implemented, while several narrative and progression systems are still placeholder-level. `FragmentConflictSystem` is currently wired as an autoload stub and does not yet drive active gameplay.
+
+See `IMPLEMENTATION_GAPS.md` for the current integration risks, simplification opportunities, and recommended sequencing.

@@ -16,6 +16,7 @@ Views are projections over shared state, not separate game modes.
 - `BodyView` (`scenes/body/BodyView.tscn`, `scripts/body/BodyView.gd`): body map interactions, capture/component assignment, vision mask, hover details.
 - `EnvironmentView` (`scenes/environment/EnvironmentView.tscn`, `scripts/environment/EnvironmentView.gd`): sensors and placeholder environment task assignment.
 - `MindView` (`scenes/mind/MindView.tscn`, `scripts/mind/MindView.gd`): memories plus placeholder mind task assignment.
+- `FragmentConflictSystem` (`autoload/FragmentConflictSystem.gd`): autoloaded; implements the conflict activation/resolution loop. Activates conflicts from `data/fragment_conflicts.json` when memory and cycle conditions are met; emits `EventBus.fragment_node_contested` / `fragment_node_stabilized`. Body visual integration and ProgressionSystem stage gating are pending.
 
 ## Data files
 
@@ -53,26 +54,18 @@ Body map layout and links are authored directly in scenes (`BodyMap.tscn`) via `
   - `set_controlling_entity(...)`
   - `get_linked_nodes()` (delegates to `BodyObject`)
 
-### `GeometricNode` (abstract)
-- Extends: `ThoughtNode`
-- Shared implementation for geometric node types:
-  - glucose resource behavior
-  - visibility and ownership visuals
-  - capture-related helper behavior
-  - hover/click signals
-
 ### `NerveCluster`
-- Extends: `GeometricNode`
+- Extends: `ThoughtNode`
 - Organic rough circle shape + wobble animation.
 - Worker type: `neuron_cluster`.
 
 ### `ArithmeticProcessor`
-- Extends: `GeometricNode`
+- Extends: `ThoughtNode`
 - Square geometry.
 - Worker type: `arithmetic_processor`.
 
 ### `QuantumCalculator`
-- Extends: `GeometricNode`
+- Extends: `ThoughtNode`
 - Triangle geometry.
 - Worker type: `quantum_calculator`.
 
@@ -104,9 +97,15 @@ Worker pool is global across views.
 Capture specifics:
 
 - requires connectivity to a player-owned source node
-- progress accumulates from worker power minus target resistance
+- progress uses pressure that scales with current conversion ratio (low early, higher later)
+- this produces an equilibrium point when worker power cannot fully overcome resistance
 - progress decays when no workers are assigned
 - completion transfers control at cycle end
+
+Worker capacity consistency:
+
+- when active node capacity drops below assigned workers, GameState removes overflow workers
+- removal order is tasks first (capture and named tasks), then components
 
 ## Mind and environment model
 
@@ -115,7 +114,10 @@ Capture specifics:
 - Dynamic entries can be registered from runtime objects and unlocked into the list.
 
 ### Environment
-- Sensor-gated visibility based on unlocked sensor set.
+- `ObservationSystem` is SSOT for environment object definitions (`data/environment_objects.json`) and sensor-gated observability.
+- `EnvironmentMap` (`scenes/environment/EnvironmentMap.tscn`, `scripts/environment/EnvironmentMap.gd`) builds `system0` world objects from shared data and owns player movement state (`position`, `rotation`, `velocity`, `acceleration`).
+- `EnvironmentView` camera uses player state each frame to keep a player-centered, fixed-orientation perspective.
+- Canonical environment sensor channels are `radio`, `heat`, `light`, `gamma`, and `gravity`.
 - Placeholder worker-assignment task currently exists for vertical slice testing.
 
 ## Shared UI helpers

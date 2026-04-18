@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://dywibu7ia12xk" path="res://scripts/body/GridDraw.gd" id="1_grid"]
 [ext_resource type="Script" uid="uid://brhmthpuvrdw" path="res://scripts/body/LinksLayer.gd" id="2_links"]
 [ext_resource type="PackedScene" path="res://scenes/body/NerveCluster.tscn" id="3_cluster"]
-[ext_resource type="PackedScene" path="res://scenes/body/PhotosyntheticTissue.tscn" id="4_component"]
+[ext_resource type="PackedScene" uid="uid://cw63bphk0dqc8" path="res://scenes/body/PhotosyntheticTissue.tscn" id="4_component"]
 
 [node name="BodyMap" type="Node2D" unique_id=1217959338]
 modulate = Color(0.22476482, 0.25271052, 0.21969578, 1)
@@ -36,7 +36,7 @@ linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../Clust
 [node name="ClusterA4" parent="ClustersRoot/west" unique_id=880803771 instance=ExtResource("3_cluster")]
 z_index = 2
 position = Vector2(-46, 227)
-scale = Vector2(0.8604, 0.8604)
+scale = Vector2(0.84, 0.84)
 glucose = 40.0
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
 is_enabled = false
@@ -85,13 +85,13 @@ linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../Clus
 [node name="wake" type="Node2D" parent="ClustersRoot" unique_id=952270788]
 
 [node name="PhotosyntheticTissueWake" parent="ClustersRoot/wake" unique_id=150127034 instance=ExtResource("4_component")]
-position = Vector2(-231, -7)
-linked_node_paths = Array[NodePath]([NodePath("../clustera8_01"), NodePath("../clusterc_01")])
+position = Vector2(55, 442)
+linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01")])
 
 [node name="clustera4_01" parent="ClustersRoot/wake" unique_id=165029725 instance=ExtResource("3_cluster")]
 z_index = 2
 position = Vector2(-73, 96)
-scale = Vector2(0.8604, 0.8604)
+scale = Vector2(0.84, 0.84)
 glucose = 40.0
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
 is_enabled = false

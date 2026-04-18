@@ -41,6 +41,8 @@ enum ControllingEntity {
 @export_range(0.0, 1.0, 0.01) var neutral_extra_wash: float = 0.24
 @export_range(0.0, 1.0, 0.01) var neutral_innate_blend: float = 0.16
 @export_range(0.0, 1.0, 0.01) var owned_innate_blend: float = 0.24
+@export_range(0.0, 0.35, 0.01) var personality_persistence_strength: float = 0.12
+@export_range(0.0, 1.0, 0.01) var personality_neutral_scale: float = 0.42
 
 ## pressure[entity_id: String] = pressure_amount: int
 ## When the total pressure from one entity reaches the threshold,
@@ -53,6 +55,9 @@ var _rng := RandomNumberGenerator.new()
 var _runtime_generated: bool = false
 var _is_hovered: bool = false
 var _capture_pulse_intensity: float = 0.0
+var _ownership_pulse_intensity: float = 0.0
+var _capture_flash_intensity: float = 0.0
+var _visual_time: float = 0.0
 var _current_fill_primary: Color = Color.WHITE
 var _current_fill_secondary: Color = Color.WHITE
 var _target_fill_primary: Color = Color.WHITE
@@ -73,6 +78,9 @@ const VISUAL_LERP_SPEED: float = 7.5
 const SCALE_MIN: float = 0.84
 const SCALE_MAX: float = 1.18
 const CAPTURE_PULSE_SCALE_MAX: float = 0.09
+const OWNERSHIP_PULSE_SPEED: float = 4.2
+const OWNERSHIP_PULSE_DECAY: float = 1.6
+const CAPTURE_FLASH_DECAY: float = 3.4
 const OWNERSHIP_CONTRAST_NEUTRAL: float = 0.72
 const OWNERSHIP_CONTRAST_PLAYER: float = 1.26
 const SECONDARY_BLEND_SCALE: float = 0.42
@@ -80,7 +88,7 @@ const NEUTRAL_WASH_AMOUNT: float = 0.56
 const GLUCOSE_COLOR_LOW: float = 0.58
 const GLUCOSE_COLOR_HIGH: float = 1.32
 const GLUCOSE_SAT_LOW: float = 0.58
-const GLUCOSE_SAT_HIGH: float = 1.26
+const GLUCOSE_SAT_HIGH: float = 1.18
 const DEFAULT_NODE_TINT: Color = Color(0.0, 0.0, 0.0, 0.0)
 
 @onready var _polygon: Polygon2D = $ClusterPolygon
@@ -106,6 +114,7 @@ func _ready() -> void:
     add_to_group("nerve_clusters")
     enabled_changed.connect(func(_e: bool) -> void: _update_visuals())
     ownership_changed.connect(func(_o: int, _n: int) -> void: _update_visuals())
+    ownership_changed.connect(_on_ownership_changed)
     GameState.state_changed.connect(_on_state_changed)
     _update_visuals()
 
@@ -120,6 +129,12 @@ func _process(delta: float) -> void:
 
 func _on_state_changed() -> void:
     _update_visuals()
+
+
+func _on_ownership_changed(old_entity: int, new_entity: int) -> void:
+    if new_entity == ControllingEntity.PLAYER and old_entity != ControllingEntity.PLAYER:
+        _capture_flash_intensity = 1.0
+        _ownership_pulse_intensity = 1.0
 
 
 ## Override in subclasses to define the node's polygon shape.
@@ -149,7 +164,7 @@ func _update_visuals() -> void:
     var visible_to_player := is_visible_to_player()
     visible = visible_to_player
     _hover_area.input_pickable = visible_to_player
-    if visible_to_player and not _runtime_generated:
+    if not Engine.is_editor_hint() and visible_to_player and not _runtime_generated:
         _generate_runtime_state_on_first_visibility()
     if not visible_to_player:
         return
@@ -169,6 +184,10 @@ func _update_visuals() -> void:
 func _animate_visuals(delta: float) -> void:
     if _polygon.polygon.is_empty():
         return
+    _visual_time += delta
+    _ownership_pulse_intensity = move_toward(_ownership_pulse_intensity, 0.0, delta * OWNERSHIP_PULSE_DECAY)
+    _capture_flash_intensity = move_toward(_capture_flash_intensity, 0.0, delta * CAPTURE_FLASH_DECAY)
+
     var target_scale := _polygon_visual.compute_target_scale(
         _get_visual_energy_factor(),
         controlling_entity,
@@ -185,12 +204,21 @@ func _animate_visuals(delta: float) -> void:
     _current_fill_secondary = _current_fill_secondary.lerp(_target_fill_secondary, color_lerp)
     _polygon_visual.set_fill_colors(_polygon, _current_fill_primary, _current_fill_secondary)
 
+    var pulse_wave := 0.5 - 0.5 * cos(_visual_time * OWNERSHIP_PULSE_SPEED)
+    var ownership_pulse := _ownership_pulse_intensity * (0.24 + pulse_wave * 0.76)
+    _polygon_visual.set_fill_effects(_polygon, ownership_pulse, _capture_flash_intensity)
+
 
 func _compute_fill_colors() -> Array[Color]:
-    return _polygon_visual.get_fill_colors({
+    return _polygon_visual.get_fill_colors(_build_visual_fill_state())
+
+
+func _build_visual_fill_state() -> Dictionary:
+    return {
         "controlling_entity": controlling_entity,
         "none_entity": ControllingEntity.NONE,
         "player_entity": ControllingEntity.PLAYER,
+        "owner_color": _get_owner_color(),
         "owner_none_color": UNCLAIMED_COLOR,
         "owner_player_color": PLAYER_COLOR,
         "node_tint": node_tint,
@@ -211,7 +239,17 @@ func _compute_fill_colors() -> Array[Color]:
         "ownership_contrast_neutral": OWNERSHIP_CONTRAST_NEUTRAL,
         "ownership_contrast_player": OWNERSHIP_CONTRAST_PLAYER,
         "disabled_wash_amount": DISABLED_WASH_AMOUNT,
-    })
+        "personality_persistence_strength": personality_persistence_strength,
+        "personality_neutral_scale": personality_neutral_scale,
+    }
+
+
+func _get_owner_color() -> Color:
+    if controlling_entity == ControllingEntity.NONE:
+        return UNCLAIMED_COLOR
+    if Engine.is_editor_hint():
+        return PLAYER_COLOR
+    return GameState.get_entity_color(controlling_entity)
 
 
 func _get_visual_energy_factor() -> float:

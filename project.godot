@@ -22,6 +22,7 @@ EventBus="*res://autoload/EventBus.gd"
 ProgressionSystem="*res://autoload/ProgressionSystem.gd"
 ObservationSystem="*res://autoload/ObservationSystem.gd"
 FragmentConflictSystem="*res://autoload/FragmentConflictSystem.gd"
+DebugVisibilityManager="*res://autoload/DebugVisibilityManager.gd"
 
 [display]
 

@@ -15,8 +15,8 @@ Keep memories, progression, unlock state, and player-facing records consistent, 
 - Reuse shared state as SSOT whenever possible.
 - Keep trigger logic explicit, deterministic, and easy to audit.
 - Separate content data from progression plumbing.
-- Preserve the distinction between observation, unlock, unread state, and fully integrated knowledge.
-- Keep terminology aligned with design, UI, and story docs.
+- Preserve the four knowledge progression stages defined in `DESIGN.md` (observation → unlock → unread → integrated).
+- Keep terminology aligned with `DESIGN.md`, `UI.md`, and `STORY.md`.
 
 ## Workflow
 1. Define the exact player knowledge states, progression gates, and record-keeping needs.

@@ -1,47 +1,35 @@
 extends Control
 
-const WORKER_ICON_STRIP := preload("res://scripts/ui/WorkerIconStrip.gd")
-const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
-
 @onready var entry_list: ItemList = $Root/EntryList
 @onready var entry_text: RichTextLabel = $Root/Content/EntryText
-@onready var add_worker_button: Button = $Root/Content/WorkerTaskButtons/AddWorkerButton
-@onready var remove_worker_button: Button = $Root/Content/WorkerTaskButtons/RemoveWorkerButton
-@onready var worker_task_status: Label = $Root/Content/WorkerTaskStatus
-@onready var worker_task_icons: HBoxContainer = $Root/Content/WorkerTaskIcons
-@onready var variable_selector: OptionButton = $Root/Content/VariableSelector
-@onready var component_shape_preview = $Root/Content/ComponentShapePreview
+@onready var component_shape_preview = $Root/Content/ComponentShapeMargin/ComponentShapePreview
 
-var entries: Array = []
-var visible_entries: Array = []
-const MIND_TASK_ID: String = "mind_task_mnemonic_weave"
+var entries: Array[Dictionary] = []
+var visible_entries: Array[Dictionary] = []
 const TYPEWRITER_SPEED: float = 40.0
 const UNREAD_COLOR: Color = Color(1.0, 0.82, 0.3, 1.0)
-var _pending_var_component_type_id: String = ""
-var _pending_var_key: String = ""
+const THOUGHT_DIVERGENCE_PLACEHOLDER := "?????"
+var _awaiting_var_selection: bool = false
 var _typewriter_active: bool = false
 var _typewriter_elapsed: float = 0.0
 var _typewriter_target: int = 0
 var _typewriter_entry_id: String = ""
+var _force_instant_entry_id: String = ""
+var _inline_var_options: Dictionary = {}
+var _inline_var_option_seq: int = 0
+var _active_thought_divergence_token: String = ""
+var _thought_divergence_menu: PopupMenu
 
 func _ready() -> void:
 	_load_entries()
+	_thought_divergence_menu = PopupMenu.new()
+	add_child(_thought_divergence_menu)
+	_thought_divergence_menu.id_pressed.connect(_on_thought_divergence_option_selected)
 	entry_list.item_selected.connect(_on_entry_selected)
-	add_worker_button.pressed.connect(_on_add_worker)
-	remove_worker_button.pressed.connect(_on_remove_worker)
-	GameState.ensure_named_task_target(MIND_TASK_ID, GameState.NODE_TYPE_ARITHMETIC_PROCESSOR, 12.0, 0.9, 0.3)
 	GameState.state_changed.connect(_refresh_entries)
-	variable_selector.item_selected.connect(_on_variable_selected)
+	entry_text.meta_clicked.connect(_on_entry_text_meta_clicked)
 	EventBus.component_memory_state_changed.connect(_on_component_memory_state_changed)
 	_refresh_entries()
-
-
-func _on_add_worker() -> void:
-	GameState.assign_worker_to_target(MIND_TASK_ID)
-
-
-func _on_remove_worker() -> void:
-	GameState.remove_worker_from_target(MIND_TASK_ID)
 
 
 func _process(delta: float) -> void:
@@ -54,7 +42,7 @@ func _process(delta: float) -> void:
 	entry_text.visible_characters = mini(new_chars, _typewriter_target)
 	if entry_text.visible_characters >= _typewriter_target:
 		_typewriter_active = false
-		if _pending_var_key == "":
+		if not _awaiting_var_selection:
 			GameState.mark_memory_read(_typewriter_entry_id)
 			_update_list_item_read_state(_typewriter_entry_id)
 
@@ -63,53 +51,67 @@ func _load_entries() -> void:
 	var file := FileAccess.open("res://data/mind_entries.json", FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	var parsed_array: Array = parsed
-	entries = parsed_array
+	entries.clear()
+	for raw_entry in parsed_array:
+		entries.append(raw_entry as Dictionary)
 
 func _populate_list() -> void:
 	entry_list.clear()
 	visible_entries.clear()
-	for item in _get_unlocked_entries():
-		visible_entries.append(item)
+	var unlocked_entries: Array[Dictionary] = _get_unlocked_entries()
+	for i in unlocked_entries.size():
+		var entry_data: Dictionary = unlocked_entries[i]
+		visible_entries.append(entry_data)
 		var idx := entry_list.item_count
-		entry_list.add_item(str(item.get("title", "")))
-		if not GameState.is_memory_read(str(item.get("id", ""))):
+		entry_list.add_item(str(entry_data.get("title", "")))
+		if not GameState.is_memory_read(str(entry_data.get("id", ""))):
 			entry_list.set_item_custom_fg_color(idx, UNREAD_COLOR)
 
 
-func _get_unlocked_entries() -> Array:
-	var result: Array = []
-	for item in entries:
-		var entry_id := str(item.get("id", "")).strip_edges()
-		if entry_id == "" or GameState.unlocked_memories.has(entry_id):
-			result.append(item)
-	for item in GameState.get_dynamic_mind_entries():
-		var entry_id := str(item.get("id", "")).strip_edges()
-		if entry_id == "":
+func _get_unlocked_entries() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var dynamic_by_id: Dictionary = {}
+	var dynamic_order: Array[String] = []
+	var dynamic_entries: Array[Dictionary] = []
+	for raw_item in GameState.get_dynamic_mind_entries():
+		dynamic_entries.append(raw_item as Dictionary)
+	for i in dynamic_entries.size():
+		var dynamic_item: Dictionary = dynamic_entries[i]
+		var dynamic_id := str(dynamic_item.get("id", "")).strip_edges()
+		if dynamic_id == "":
 			continue
+		dynamic_by_id[dynamic_id] = dynamic_item
+		dynamic_order.append(dynamic_id)
+
+	for i in entries.size():
+		var static_entry: Dictionary = entries[i]
+		var entry_id := str(static_entry.get("id", "")).strip_edges()
+		if entry_id == "" or GameState.unlocked_memories.has(entry_id):
+			if dynamic_by_id.has(entry_id):
+				var dynamic_entry := dynamic_by_id[entry_id] as Dictionary
+				result.append(dynamic_entry)
+			else:
+				result.append(static_entry)
+	for entry_id in dynamic_order:
 		if not GameState.unlocked_memories.has(entry_id):
 			continue
 		if _contains_entry_id(result, entry_id):
 			continue
-		result.append(item)
+		var dynamic_entry := dynamic_by_id[entry_id] as Dictionary
+		result.append(dynamic_entry)
 	return result
 
 
-func _contains_entry_id(items: Array, entry_id: String) -> bool:
-	for item in items:
-		if str(item.get("id", "")) == entry_id:
+func _contains_entry_id(items: Array[Dictionary], entry_id: String) -> bool:
+	for i in items.size():
+		var entry_data: Dictionary = items[i]
+		if str(entry_data.get("id", "")) == entry_id:
 			return true
 	return false
 
 func _refresh_entries() -> void:
 	var selected_id := _get_selected_entry_id()
 	_populate_list()
-	var workers := GameState.get_target_workers(MIND_TASK_ID)
-	WORKER_ICON_STRIP.populate(worker_task_icons, workers)
-	worker_task_status.text = "Progress: %d%% | Power: %.2f\nWorkers: %s" % [
-		int(round(GameState.get_target_progress_ratio(MIND_TASK_ID) * 100.0)),
-		GameState.get_target_total_power(MIND_TASK_ID),
-		WORKER_DISPLAY_UTILS.format_worker_mix(workers),
-	]
 	var restore_idx := _find_entry_index_by_id(selected_id)
 	if restore_idx >= 0:
 		entry_list.select(restore_idx)
@@ -127,19 +129,21 @@ func _on_entry_selected(index: int) -> void:
 func _display_entry(index: int) -> void:
 	if index < 0 or index >= visible_entries.size():
 		return
-	var item: Dictionary = visible_entries[index]
-	var entry_id := str(item.get("id", ""))
+	var entry: Dictionary = visible_entries[index]
+	var entry_id := str(entry.get("id", ""))
+	if _awaiting_var_selection and not _typewriter_active and _typewriter_entry_id == entry_id:
+		# Keep the prompt visible and token mapping stable until the player chooses.
+		entry_text.visible_characters = -1
+		return
 	if _typewriter_active and _typewriter_entry_id == entry_id:
 		return
 	_typewriter_active = false
-	variable_selector.clear()
-	variable_selector.visible = false
-	_pending_var_component_type_id = ""
-	_pending_var_key = ""
-	var title := str(item.get("title", "Untitled"))
-	var body := _resolve_entry_text(item)
+	_awaiting_var_selection = false
+	_inline_var_options.clear()
+	var title := str(entry.get("title", "Untitled"))
+	var body := _resolve_entry_text(entry)
 	entry_text.text = "[b]%s[/b]\n\n%s" % [title, body]
-	var component_type_id := str(item.get("component_type_id", ""))
+	var component_type_id := str(entry.get("component_type_id", ""))
 	if component_type_id != "":
 		var shape_data := GameState.get_component_shape_data(component_type_id)
 		if not shape_data.is_empty():
@@ -149,6 +153,12 @@ func _display_entry(index: int) -> void:
 			component_shape_preview.visible = false
 	else:
 		component_shape_preview.visible = false
+	if _force_instant_entry_id == entry_id:
+		_force_instant_entry_id = ""
+		entry_text.visible_characters = -1
+		GameState.mark_memory_read(entry_id)
+		_update_list_item_read_state(entry_id)
+		return
 	if GameState.is_memory_read(entry_id):
 		entry_text.visible_characters = -1
 	else:
@@ -159,48 +169,92 @@ func _display_entry(index: int) -> void:
 		_typewriter_active = true
 
 
-func _resolve_entry_text(item: Dictionary) -> String:
-	if not item.has("text_segments"):
-		return str(item.get("text", ""))
-	var component_type_id := str(item.get("component_type_id", ""))
+func _resolve_entry_text(entry_data: Dictionary) -> String:
+	if not entry_data.has("text_segments"):
+		return str(entry_data.get("text", ""))
+	var component_type_id := str(entry_data.get("component_type_id", ""))
 	var result := ""
-	for segment in item.get("text_segments", []):
+	for raw_segment in entry_data.get("text_segments", []):
+		var segment: Dictionary = raw_segment as Dictionary
 		match str(segment.get("type", "text")):
 			"text":
-				result += _substitute_component_vars(str(segment.get("content", "")), component_type_id)
+				result += GameState.render_component_text(str(segment.get("content", "")), component_type_id)
 			"variable":
-				var var_key := str(segment.get("key", ""))
-				var chosen := GameState.get_component_memory_var(component_type_id, var_key)
+				var divergence_id := str(segment.get("thought_divergence_id", segment.get("key", ""))).strip_edges()
+				var chosen := GameState.get_thought_divergence(divergence_id)
 				if chosen == "":
-					_pending_var_component_type_id = component_type_id
-					_pending_var_key = var_key
-					for option in segment.get("options", []):
-						variable_selector.add_item(str(option))
-					variable_selector.visible = true
+					_awaiting_var_selection = true
+					result += _build_thought_divergence_placeholder(divergence_id, segment.get("options", []))
 					break
 				result += chosen
 	return result
 
 
-func _substitute_component_vars(text: String, component_type_id: String) -> String:
-	var result := text
-	var controlled_count := GameState.get_controlled_component_count(component_type_id)
-	var food_per := float(GameState.get_component_property(component_type_id, "food_output_per_cycle", 0.0))
-	result = result.replace("{required_power}", str(GameState.get_component_property(component_type_id, "required_power", "?")))
-	result = result.replace("{food_output_per_cycle}", str(food_per))
-	result = result.replace("{controlled_count}", str(controlled_count))
-	result = result.replace("{total_food_contribution}", "%.1f" % (controlled_count * food_per))
-	return result
+func _build_thought_divergence_placeholder(divergence_id: String, options: Array) -> String:
+	if options.is_empty():
+		return "[i](missing options)[/i]"
+	if divergence_id == "":
+		return "[i](missing thoughtDivergence id)[/i]"
+	var option_values: Array[String] = []
+	for option in options:
+		option_values.append(str(option))
+	var token := "td%d" % _inline_var_option_seq
+	_inline_var_option_seq += 1
+	_inline_var_options[token] = {
+		"thought_divergence_id": divergence_id,
+		"options": option_values,
+	}
+	return "[url=td:%s]%s[/url]" % [token, THOUGHT_DIVERGENCE_PLACEHOLDER]
 
 
-func _on_variable_selected(option_index: int) -> void:
-	if _pending_var_key == "":
+func _on_entry_text_meta_clicked(meta: Variant) -> void:
+	var meta_text: String = str(meta)
+	if not meta_text.begins_with("td:"):
 		return
-	var value := variable_selector.get_item_text(option_index)
-	GameState.set_component_memory_var(_pending_var_component_type_id, _pending_var_key, value)
-	_pending_var_component_type_id = ""
-	_pending_var_key = ""
-	variable_selector.visible = false
+	var token := meta_text.substr(3)
+	if not _inline_var_options.has(token):
+		return
+	_active_thought_divergence_token = token
+	_show_thought_divergence_dropdown(token)
+
+
+func _show_thought_divergence_dropdown(token: String) -> void:
+	var option_data: Dictionary = _inline_var_options[token]
+	var option_values: Array[String] = option_data.get("options", [])
+	if option_values.is_empty():
+		return
+	_thought_divergence_menu.clear()
+	for i in option_values.size():
+		_thought_divergence_menu.add_item(option_values[i], i)
+	var mouse_pos := get_viewport().get_mouse_position()
+	_thought_divergence_menu.popup(Rect2i(Vector2i(mouse_pos), Vector2i(220, 1)))
+
+
+func _on_thought_divergence_option_selected(option_index: int) -> void:
+	if _active_thought_divergence_token == "":
+		return
+	if not _inline_var_options.has(_active_thought_divergence_token):
+		return
+	var option_data: Dictionary = _inline_var_options[_active_thought_divergence_token]
+	var divergence_id := str(option_data.get("thought_divergence_id", "")).strip_edges()
+	if divergence_id == "":
+		return
+	var option_values: Array[String] = option_data.get("options", [])
+	if option_index < 0 or option_index >= option_values.size():
+		return
+	var selected_value := str(option_values[option_index])
+	_active_thought_divergence_token = ""
+	var selected := entry_list.get_selected_items()
+	if selected.is_empty():
+		return
+	var selected_idx := int(selected[0])
+	if selected_idx < 0 or selected_idx >= visible_entries.size():
+		return
+	var selected_entry := visible_entries[selected_idx] as Dictionary
+	_force_instant_entry_id = str(selected_entry.get("id", ""))
+	_awaiting_var_selection = false
+	_typewriter_active = false
+	GameState.set_thought_divergence(divergence_id, selected_value)
 
 
 func _on_component_memory_state_changed(component_type_id: String, _new_state: int) -> void:
@@ -210,8 +264,7 @@ func _on_component_memory_state_changed(component_type_id: String, _new_state: i
 	var idx := int(selected[0])
 	if idx >= visible_entries.size():
 		return
-	var item := visible_entries[idx]
-	if str(item.get("component_type_id", "")) == component_type_id:
+	if str(visible_entries[idx].get("component_type_id", "")) == component_type_id:
 		_typewriter_active = false
 		_display_entry(idx)
 

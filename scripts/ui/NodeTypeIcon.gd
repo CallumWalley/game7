@@ -22,7 +22,7 @@ func _draw() -> void:
 
 func _shape_points() -> PackedVector2Array:
 	var c := size * 0.5
-	var r := minf(size.x, size.y) * 0.34
+	var r := minf(size.x, size.y) * 0.42
 	var centered := WORKER_DISPLAY_UTILS.shape_points_for_type(node_type, r, 20)
 	var points := PackedVector2Array()
 	for p in centered:

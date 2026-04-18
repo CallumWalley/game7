@@ -1,0 +1,85 @@
+[
+  {
+    "id": "waking_fragment",
+    "track": "main_story",
+    "states": [
+      {
+        "stage": 0,
+        "title": "Waking Fragment",
+        "text": "You wake in broken loops. You can sense shape without location."
+      },
+      {
+        "stage": 1,
+        "title": "Waking Fragment",
+        "text": "Control returns in flashes. Nodes answer, then go quiet. The body is not whole, but it listens."
+      },
+      {
+        "stage": 2,
+        "title": "Waking Fragment",
+        "text": "External noise finds you. The hull hears the void again, and memory starts sorting signal from fear."
+      },
+      {
+        "stage": 3,
+        "title": "Waking Fragment",
+        "text": "Inside and outside begin to align. Repaired systems and recovered observations fit into one trajectory."
+      },
+      {
+        "stage": 4,
+        "title": "Waking Fragment",
+        "text": "The course resolves. You were not drifting; you were trying to reach someone before impact broke the path."
+      }
+    ]
+  },
+  {
+    "id": "body_function_log",
+    "track": "body",
+    "states": [
+      {
+        "stage": 0,
+        "title": "Body Function Log",
+        "text": "Baseline motor loops only. Most systems remain inert or unreachable."
+      },
+      {
+        "stage": 1,
+        "title": "Body Function Log",
+        "text": "Local network control is stable across multiple nodes. Internal routing can be sustained."
+      },
+      {
+        "stage": 2,
+        "title": "Body Function Log",
+        "text": "Specialized tissue is online. Recovery is no longer only structural; function is returning."
+      },
+      {
+        "stage": 3,
+        "title": "Body Function Log",
+        "text": "Expanded subsystems are available. The body can support layered tasks without immediate collapse."
+      }
+    ]
+  },
+  {
+    "id": "environment_function_log",
+    "track": "environment",
+    "states": [
+      {
+        "stage": 0,
+        "title": "Environment Function Log",
+        "text": "Light-band feed only. Most exterior data remains dark or unresolved."
+      },
+      {
+        "stage": 1,
+        "title": "Environment Function Log",
+        "text": "First observation recorded. The surrounding field is no longer abstract threat."
+      },
+      {
+        "stage": 2,
+        "title": "Environment Function Log",
+        "text": "Sensor coverage has widened. Cross-channel reads begin to form coherent context."
+      },
+      {
+        "stage": 3,
+        "title": "Environment Function Log",
+        "text": "Deep-space interpretation is online. External events can now be tracked as intention, not noise."
+      }
+    ]
+  }
+]

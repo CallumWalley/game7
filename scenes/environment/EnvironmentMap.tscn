@@ -1,8 +1,10 @@
 [gd_scene format=3 uid="uid://environment_map_scene"]
 
 [ext_resource type="Script" path="res://scripts/body/GridDraw.gd" id="1_grid"]
+[ext_resource type="Script" path="res://scripts/environment/EnvironmentMap.gd" id="2_env_map_script"]
 
 [node name="EnvironmentMap" type="Node2D"]
+script = ExtResource("2_env_map_script")
 
 [node name="GridDraw" type="Node2D" parent="."]
 script = ExtResource("1_grid")
@@ -19,12 +21,9 @@ polygon = PackedVector2Array(-220, -8, -140, -36, 0, -48, 140, -36, 220, -8, 240
 color = Color(0.38, 0.5, 0.62, 0.12)
 polygon = PackedVector2Array(-420, -10, -300, -56, 0, -88, 300, -56, 420, -10, 452, 0, 420, 10, 300, 56, 0, 88, -300, 56, -420, 10, -452, 0)
 
-[node name="PrimaryBody" type="Polygon2D" parent="."]
-position = Vector2(-40, -20)
-color = Color(0.92, 0.76, 0.44, 0.95)
-polygon = PackedVector2Array(-26, -6, -20, -20, -6, -28, 8, -26, 22, -16, 28, -2, 24, 14, 8, 28, -10, 24, -24, 12)
+[node name="ObjectsLayer" type="Node2D" parent="."]
 
-[node name="SecondaryBody" type="Polygon2D" parent="."]
-position = Vector2(260, 120)
-color = Color(0.52, 0.68, 0.86, 0.9)
-polygon = PackedVector2Array(-20, -8, -16, -20, -2, -26, 12, -20, 22, -4, 18, 12, 2, 24, -12, 18, -22, 6)
+[node name="PlayerMarker" type="Polygon2D" parent="."]
+z_index = 5
+color = Color(0.36, 0.9, 1, 0.98)
+polygon = PackedVector2Array(20, 0, -12, -10, -4, 0, -12, 10)

@@ -17,6 +17,7 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_bottom = -44.0
 grow_horizontal = 2
 grow_vertical = 2
 split_offset = 180
@@ -28,46 +29,34 @@ size_flags_horizontal = 3
 [node name="Content" type="VBoxContainer" parent="Root"]
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="ComponentShapePreview" type="Control" parent="Root/Content"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 100)
-visible = false
-script = ExtResource("2_shape_preview")
+theme_override_constants/separation = 12
 
 [node name="EntryText" type="RichTextLabel" parent="Root/Content"]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
 
-[node name="VariableSelector" type="OptionButton" parent="Root/Content"]
+[node name="ComponentShapeMargin" type="MarginContainer" parent="Root/Content"]
 layout_mode = 2
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ComponentShapePreview" type="Control" parent="Root/Content/ComponentShapeMargin"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 100)
 visible = false
+script = ExtResource("2_shape_preview")
 
-[node name="Timeline" type="HSlider" parent="Root/Content"]
-layout_mode = 2
+[node name="Timeline" type="HSlider" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -34.0
+offset_right = -16.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
 max_value = 100.0
-
-[node name="WorkerTaskTitle" type="Label" parent="Root/Content"]
-layout_mode = 2
-text = "Mnemonic Weave Task"
-
-[node name="WorkerTaskButtons" type="HBoxContainer" parent="Root/Content"]
-layout_mode = 2
-
-[node name="AddWorkerButton" type="Button" parent="Root/Content/WorkerTaskButtons"]
-layout_mode = 2
-text = "+ Worker"
-
-[node name="RemoveWorkerButton" type="Button" parent="Root/Content/WorkerTaskButtons"]
-layout_mode = 2
-text = "- Worker"
-
-[node name="WorkerTaskStatus" type="Label" parent="Root/Content"]
-layout_mode = 2
-autowrap_mode = 3
-text = "Progress: 0%"
-
-[node name="WorkerTaskIcons" type="HBoxContainer" parent="Root/Content"]
-layout_mode = 2
-theme_override_constants/separation = 4

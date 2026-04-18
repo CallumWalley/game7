@@ -14,8 +14,6 @@ const WORKER_WORLD_MARKERS := preload("res://scripts/ui/WorkerWorldMarkers.gd")
 @onready var _hovered_card: HoverInfoCard = $Overlay/HoveredCard
 @onready var _vision_mask: ColorRect = $Overlay/VisionMask
 
-@export var debug_show_hover_stats: bool = true
-
 var _hovered_cluster: Node = null
 var _hovered_component: Node = null
 var _suppress_status_popup_once: Dictionary = {}
@@ -33,14 +31,14 @@ const VISION_SECONDARY_FEATHER_WORLD: float = 180.0
 const VISION_MAX_DARK_ALPHA: float = 0.92
 const MAX_VISION_CENTERS: int = 8
 const UI_BLOCKER_GRACE_PX: float = 52.0
-const WORKERBENCH_ICON_SCALE: float = 0.58
-const WORKERBENCH_ICON_RADIUS: float = 8.0
-const WORKERBENCH_CAPTURE_ARC_STEP: float = 0.22
+const WORKERBENCH_ICON_SCALE: float = 0.92
+const WORKERBENCH_ICON_RADIUS: float = 10.0
+const WORKERBENCH_CAPTURE_ARC_STEP: float = 0.27
 const WORKERBENCH_ORBIT_SPEED: float = 0.07
-const WORKERBENCH_MIN_ORBIT_RADIUS_PX: float = 34.0
-const WORKERBENCH_NODE_PADDING_PX: float = 12.0
-const WORKERBENCH_COMPONENT_MARGIN_PX: float = 16.0
-const WORKERBENCH_COMPONENT_STEP_PX: float = 18.0
+const WORKERBENCH_MIN_ORBIT_RADIUS_PX: float = 58.0
+const WORKERBENCH_NODE_PADDING_PX: float = 20.0
+const WORKERBENCH_COMPONENT_MARGIN_PX: float = 22.0
+const WORKERBENCH_COMPONENT_STEP_PX: float = 24.0
 const WORKERBENCH_COMPONENT_RISE_PX: float = 14.0
 
 const VISION_SHADER := preload("res://shaders/vision_mask.gdshader")
@@ -216,24 +214,39 @@ func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
 	var emotion_txt := str(cluster.get("status")).strip_edges()
 	if emotion_txt == "":
 		emotion_txt = "unknown"
-	var title := str(cluster.get("concept_name"))
+	var memory_data: Dictionary = cluster.call("get_mind_entry_data") if cluster.has_method("get_mind_entry_data") else {}
+	var memory_id := str(memory_data.get("id", "")).strip_edges()
+	var memory_title := str(memory_data.get("title", "")).strip_edges()
+	var memory_text := str(memory_data.get("text", "")).strip_edges()
+	var understood := memory_id == "" or GameState.unlocked_memories.has(memory_id)
+	var title := memory_title
+	if title == "":
+		title = str(cluster.get("concept_name"))
 	if title == "":
 		title = str(cluster.name)
-	var details := "%s" % emotion_txt
-	if not bool(cluster.call("is_player_owned")):
-		var task_id := GameState.get_capture_task_id_if_exists(cluster)
-		if task_id != "":
-			var workers := GameState.get_target_workers(task_id)
-			details += "\nCapture: %d%%" % int(round(GameState.get_target_progress_ratio(task_id) * 100.0))
-			details += "\nWorkers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
-			details += "\nEff. power: %.2f" % GameState.get_target_total_power(task_id)
-	if debug_show_hover_stats:
-		var glucose_value := float(cluster.get("glucose"))
-		var power_value := 0.0
-		var resistance_value := float(cluster.get("resistance"))
-		if cluster.has_method("get_hidden_power"):
-			power_value = float(cluster.call("get_hidden_power"))
-		details += "\nGlucose: %d\nPower: %.2f\nResistance: %.2f" % [int(round(glucose_value)), power_value, resistance_value]
+	var details := ""
+	if understood:
+		if memory_text != "":
+			details = memory_text
+		if details != "":
+			details += "\n\n"
+		details += "Status: %s" % emotion_txt
+		if not bool(cluster.call("is_player_owned")):
+			var task_id := GameState.get_capture_task_id_if_exists(cluster)
+			if task_id != "":
+				var workers := GameState.get_target_workers(task_id)
+				details += "\nCapture: %d%%" % int(round(GameState.get_target_progress_ratio(task_id) * 100.0))
+				details += "\nWorkers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
+				details += "\nEff. power: %.2f" % GameState.get_target_total_power(task_id)
+		if DebugVisibilityManager.get_option(DebugVisibilityManager.OPTION_BODY_HOVER_STATS):
+			var glucose_value := float(cluster.get("glucose"))
+			var power_value := 0.0
+			var resistance_value := float(cluster.get("resistance"))
+			if cluster.has_method("get_hidden_power"):
+				power_value = float(cluster.call("get_hidden_power"))
+			details += "\nGlucose: %d\nPower: %.2f\nResistance: %.2f" % [int(round(glucose_value)), power_value, resistance_value]
+	else:
+		details = "Status: %s\nUnderstanding incomplete." % emotion_txt
 	card.set_content(
 		title,
 		details
@@ -245,18 +258,32 @@ func _set_component_card_content(card: HoverInfoCard, component: Node) -> void:
 	if not is_instance_valid(component):
 		_hide_card(card)
 		return
-	var title := str(component.get("component_label"))
+	var component_type_id := str(component.get("component_type_id"))
+	var memory_display := GameState.get_component_memory_display(component_type_id)
+	var title := str(memory_display.get("title", "")).strip_edges()
+	if title == "":
+		title = str(component.get("component_label"))
 	if title.strip_edges() == "":
 		title = str(component.name)
+	var understanding_state := int(memory_display.get("state", 0))
+	var details := ""
 	var target_id: String = str(component.call("get_worker_target_id"))
 	var workers: Dictionary = GameState.get_target_workers(target_id)
 	var current_power: float = GameState.get_target_total_power(target_id)
 	var required_power := float(component.get("required_power"))
 	var connected := bool(component.call("is_connected_to_player_node"))
-	var details := "Workers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
-	details += "\nPower: %.2f / %.2f" % [current_power, required_power]
-	details += "\nConnected: %s" % ("yes" if connected else "no")
-	details += "\nActive: %s" % ("yes" if bool(component.get("is_activated")) else "no")
+	if understanding_state >= 2:
+		if details != "":
+			details += "\n\n"
+		details += "Workers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
+		details += "\nPower: %.2f / %.2f" % [current_power, required_power]
+		details += "\nConnected: %s" % ("yes" if connected else "no")
+		details += "\nActive: %s" % ("yes" if bool(component.get("is_activated")) else "no")
+	else:
+		if details != "":
+			details += "\n\n"
+		details += "Workers observed: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
+		details += "\nUnderstanding incomplete."
 	card.set_content(title, details)
 	card.visible = true
 

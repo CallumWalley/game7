@@ -56,7 +56,7 @@ var last_tick_power_total: float = 0.0
 var unlocked_body_nodes: Dictionary = {"core_boot": true}
 var contested_body_nodes: Dictionary = {}
 var unlocked_memories: Dictionary = {"waking_fragment": true}
-var unlocked_sensors: Dictionary = {"optical": true}
+var unlocked_sensors: Dictionary = {"light": true}
 var observed_environment: Dictionary = {}
 var thought_queue: Array[String] = []
 @export var world_seed: int = -1
@@ -94,6 +94,7 @@ var dynamic_mind_entries: Dictionary = {}
 var _component_mind_entry_defs: Dictionary = {}  # component_type_id -> full JSON def
 var component_memory_states: Dictionary = {}      # component_type_id -> int current state
 var component_memory_vars: Dictionary = {}        # component_type_id -> {var_key -> chosen_value}
+var thought_divergences: Dictionary = {}          # thought_divergence_id -> chosen_value
 var _component_first_hovered: Dictionary = {}     # component_type_id -> true
 var _component_properties: Dictionary = {}        # component_type_id -> {prop_key -> value}
 var memory_read_state: Dictionary = {}            # entry_id -> true means read
@@ -107,11 +108,11 @@ func _ready() -> void:
 	_load_component_mind_entries()
 
 
-func set_world_seed(seed: int) -> void:
-	if seed < 0:
+func set_world_seed(seed_value: int) -> void:
+	if seed_value < 0:
 		world_seed = _rng.randi()
 		return
-	world_seed = seed
+	world_seed = seed_value
 
 
 func roll_new_world_seed() -> int:
@@ -189,22 +190,31 @@ func _simulate_food_tick() -> void:
 
 
 func _simulate_worker_tick() -> void:
+	var reassigned := _enforce_worker_capacity_limits()
 	var targets_to_complete: Array[String] = []
 	for target_id in worker_targets.keys():
 		var target: Dictionary = worker_targets[target_id]
 		var workers: Dictionary = target.get("workers", {})
 		var preferred_type := str(target.get("preferred_type", NODE_TYPE_NEURON_CLUSTER))
 		var multiplier := float(target.get("non_preferred_multiplier", non_preferred_power_multiplier))
-		var resistance := float(target.get("resistance", 0.0))
-		var gain := _compute_worker_power(workers, preferred_type, multiplier) - resistance
-		if gain > 0.0:
+		var base_resistance := float(target.get("resistance", 0.0))
+		var worker_power := _compute_worker_power(workers, preferred_type, multiplier)
+		var gain := worker_power - base_resistance
+		var is_capture := str(target.get("kind", "")) == "capture_node"
+		if is_capture:
+			var progress_goal := maxf(float(target.get("progress_goal", capture_progress_goal)), 0.01)
+			var progress_ratio := clampf(float(target.get("progress", 0.0)) / progress_goal, 0.0, 1.0)
+			var pressure_resistance := base_resistance * progress_ratio
+			gain = worker_power - pressure_resistance
 			target["progress"] = float(target.get("progress", 0.0)) + gain
-		elif str(target.get("kind", "")) == "capture_node" and _total_workers(workers) == 0:
-			target["progress"] = maxf(float(target.get("progress", 0.0)) - capture_decay_per_cycle, 0.0)
+			if _total_workers(workers) == 0:
+				target["progress"] = float(target.get("progress", 0.0)) - capture_decay_per_cycle
 			worker_targets[target_id] = target
+		elif gain > 0.0:
+			target["progress"] = float(target.get("progress", 0.0)) + gain
 		var progress_goal := maxf(float(target.get("progress_goal", 0.0)), 0.0)
 		if progress_goal > 0.0:
-			target["progress"] = minf(float(target.get("progress", 0.0)), progress_goal)
+			target["progress"] = clampf(float(target.get("progress", 0.0)), 0.0, progress_goal)
 			worker_targets[target_id] = target
 		if target.get("kind", "") != "capture_node":
 			continue
@@ -218,6 +228,64 @@ func _simulate_worker_tick() -> void:
 		var activated := bool(component.call("update_activation_from_workers"))
 		if activated:
 			food += float(component.call("get_food_output_per_cycle"))
+
+	if reassigned:
+		emit_signal("state_changed")
+
+
+func _enforce_worker_capacity_limits() -> bool:
+	var node_counts := get_node_type_counts()
+	var assigned_counts := _get_assigned_worker_counts_global()
+	var changed := false
+	for node_type in NODE_TYPE_ORDER:
+		var row: Dictionary = node_counts.get(node_type, {})
+		var active := int(row.get("active", 0))
+		var assigned := int(assigned_counts.get(node_type, 0))
+		var overflow := maxi(assigned - active, 0)
+		if overflow <= 0:
+			continue
+		if _remove_workers_by_kind_priority(node_type, overflow, ["capture_node", "named_task"]):
+			changed = true
+		var still_assigned := _count_assigned_workers_of_type(node_type)
+		var remaining_overflow := maxi(still_assigned - active, 0)
+		if remaining_overflow <= 0:
+			continue
+		if _remove_workers_by_kind_priority(node_type, remaining_overflow, ["component"]):
+			changed = true
+	return changed
+
+
+func _remove_workers_by_kind_priority(node_type: String, to_remove: int, kind_priority: Array[String]) -> bool:
+	var remaining := to_remove
+	var changed := false
+	for kind in kind_priority:
+		if remaining <= 0:
+			break
+		for target_id in worker_targets.keys():
+			if remaining <= 0:
+				break
+			var target: Dictionary = worker_targets[target_id]
+			if str(target.get("kind", "")) != kind:
+				continue
+			var workers: Dictionary = target.get("workers", _empty_workers_dict())
+			var current_count := int(workers.get(node_type, 0))
+			if current_count <= 0:
+				continue
+			var remove_count := mini(current_count, remaining)
+			workers[node_type] = current_count - remove_count
+			target["workers"] = workers
+			worker_targets[target_id] = target
+			remaining -= remove_count
+			changed = true
+	return changed
+
+
+func _count_assigned_workers_of_type(node_type: String) -> int:
+	var total := 0
+	for target in worker_targets.values():
+		var workers: Dictionary = target.get("workers", {})
+		total += int(workers.get(node_type, 0))
+	return total
 
 
 func _complete_capture_task(target_id: String) -> void:
@@ -759,7 +827,7 @@ func _refresh_component_mind_entry(component_type_id: String) -> void:
 		return
 	var entry_id := str(def.get("mind_entry_id", "component_%s" % component_type_id))
 	var current_state := int(component_memory_states.get(component_type_id, 0))
-	var state_def := _find_component_state_def(def, current_state)
+	var state_def := _find_component_state_def_for_display(def, current_state)
 	if state_def.is_empty():
 		return
 	dynamic_mind_entries[entry_id] = {
@@ -779,6 +847,79 @@ func _find_component_state_def(component_def: Dictionary, target_state: int) -> 
 	return {}
 
 
+func _find_component_state_def_for_display(component_def: Dictionary, target_state: int) -> Dictionary:
+	var exact := _find_component_state_def(component_def, target_state)
+	if not exact.is_empty():
+		return exact
+	var best_below: Dictionary = {}
+	var best_below_state := -999999
+	var min_above: Dictionary = {}
+	var min_above_state := 999999
+	for state_def in component_def.get("states", []):
+		var state_value := int(state_def.get("state", -1))
+		if state_value <= target_state and state_value > best_below_state:
+			best_below_state = state_value
+			best_below = state_def
+		elif state_value > target_state and state_value < min_above_state:
+			min_above_state = state_value
+			min_above = state_def
+	if not best_below.is_empty():
+		return best_below
+	return min_above
+
+
+func get_component_memory_display(component_type_id: String) -> Dictionary:
+	var def: Dictionary = _component_mind_entry_defs.get(component_type_id, {})
+	if def.is_empty():
+		return {}
+	var current_state := int(component_memory_states.get(component_type_id, 0))
+	var state_def := _find_component_state_def_for_display(def, current_state)
+	if state_def.is_empty():
+		return {}
+	return {
+		"state": int(state_def.get("state", current_state)),
+		"title": str(state_def.get("title", component_type_id)),
+		"text": _render_component_state_text(component_type_id, state_def.get("text_segments", [])),
+	}
+
+
+func _render_component_state_text(component_type_id: String, text_segments: Array) -> String:
+	var result := ""
+	for raw_segment in text_segments:
+		var segment: Dictionary = raw_segment as Dictionary
+		match str(segment.get("type", "text")):
+			"text":
+				result += _substitute_component_tokens(str(segment.get("content", "")), component_type_id)
+			"variable":
+				var var_key := str(segment.get("key", ""))
+				var chosen := get_component_memory_var(component_type_id, var_key)
+				if chosen == "":
+					var options: Array = segment.get("options", [])
+					if not options.is_empty():
+						var labels: Array[String] = []
+						for option in options:
+							labels.append(str(option))
+						result += "(%s)" % " / ".join(labels)
+					continue
+				result += chosen
+	return result.strip_edges()
+
+
+func _substitute_component_tokens(text: String, component_type_id: String) -> String:
+	var result := text
+	var controlled_count := get_controlled_component_count(component_type_id)
+	var food_per := float(get_component_property(component_type_id, "food_output_per_cycle", 0.0))
+	result = result.replace("{required_power}", str(get_component_property(component_type_id, "required_power", "?")))
+	result = result.replace("{food_output_per_cycle}", str(food_per))
+	result = result.replace("{controlled_count}", str(controlled_count))
+	result = result.replace("{total_food_contribution}", "%.1f" % (controlled_count * food_per))
+	return result
+
+
+func render_component_text(text: String, component_type_id: String) -> String:
+	return _substitute_component_tokens(text, component_type_id)
+
+
 func set_component_memory_var(component_type_id: String, var_key: String, value: String) -> void:
 	if not component_memory_vars.has(component_type_id):
 		component_memory_vars[component_type_id] = {}
@@ -789,6 +930,21 @@ func set_component_memory_var(component_type_id: String, var_key: String, value:
 func get_component_memory_var(component_type_id: String, var_key: String) -> String:
 	var vars: Dictionary = component_memory_vars.get(component_type_id, {})
 	return str(vars.get(var_key, ""))
+
+
+func set_thought_divergence(thought_divergence_id: String, value: String) -> void:
+	var divergence_id := thought_divergence_id.strip_edges()
+	if divergence_id == "":
+		return
+	thought_divergences[divergence_id] = value
+	emit_signal("state_changed")
+
+
+func get_thought_divergence(thought_divergence_id: String) -> String:
+	var divergence_id := thought_divergence_id.strip_edges()
+	if divergence_id == "":
+		return ""
+	return str(thought_divergences.get(divergence_id, ""))
 
 
 func get_component_memory_state(component_type_id: String) -> int:

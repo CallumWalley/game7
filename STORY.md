@@ -31,6 +31,18 @@ Potential onboarding sequence:
 - Midgame content should increase specificity and coherence.
 - Late content should feel integrated, intentional, and directed.
 
+## Content authoring by phase
+
+When writing new entries, observations, or dialogue, anchor content to its phase to maintain tonal consistency:
+
+| Phase | Tone | Knowledge level | Terminology |
+|---|---|---|---|
+| **Early** | Abstract, fragmented, emotionally raw | Sensory only — no function names | Unknown or coined by the player |
+| **Midgame** | Increasing specificity, partial coherence | Recognition without full understanding | Emerging canonical terms |
+| **Late** | Integrated, intentional, directed | Full functional knowledge | Canonical terminology throughout |
+
+Content that skips a phase (e.g. using correct terminology in an early entry) breaks immersion and undermines the recovery arc.
+
 ## Naming guidance for thought nodes
 - Use unique adjectiveNoun naming.
 - Early examples should be simple abstractions (color, shape, emotion).

@@ -6,8 +6,10 @@ const WORKER_DISPLAY_UTILS := preload("res://scripts/ui/WorkerDisplayUtils.gd")
 const EDGE_MARGIN: float = 40.0
 const UI_BLOCKER_GRACE_PX: float = 52.0
 
-@onready var optical_toggle: CheckBox = $Root/Sidebar/Sensors/OpticalToggle
-@onready var thermal_toggle: CheckBox = $Root/Sidebar/Sensors/ThermalToggle
+@onready var radio_toggle: CheckBox = $Root/Sidebar/Sensors/RadioToggle
+@onready var heat_toggle: CheckBox = $Root/Sidebar/Sensors/HeatToggle
+@onready var light_toggle: CheckBox = $Root/Sidebar/Sensors/LightToggle
+@onready var gamma_toggle: CheckBox = $Root/Sidebar/Sensors/GammaToggle
 @onready var gravity_toggle: CheckBox = $Root/Sidebar/Sensors/GravityToggle
 @onready var observe_button: Button = $Root/Sidebar/ObserveNextButton
 @onready var overlay: Control = $Root/MapArea/Overlay
@@ -15,6 +17,7 @@ const UI_BLOCKER_GRACE_PX: float = 52.0
 @onready var viewport_container: SubViewportContainer = $Root/MapArea/Inset/VBox/SubViewportContainer
 @onready var subviewport: SubViewport = $Root/MapArea/Inset/VBox/SubViewportContainer/SubViewport
 @onready var camera: Camera2D = $Root/MapArea/Inset/VBox/SubViewportContainer/SubViewport/Camera2D
+@onready var world_root: Node2D = $Root/MapArea/Inset/VBox/SubViewportContainer/SubViewport/WorldRoot
 @onready var sidebar: Control = $Root/Sidebar
 @onready var add_worker_button: Button = $Root/Sidebar/WorkerTaskButtons/AddWorkerButton
 @onready var remove_worker_button: Button = $Root/Sidebar/WorkerTaskButtons/RemoveWorkerButton
@@ -24,8 +27,10 @@ const UI_BLOCKER_GRACE_PX: float = 52.0
 const ENV_TASK_ID: String = "env_task_signal_decode"
 
 func _ready() -> void:
-	optical_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("optical", pressed))
-	thermal_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("thermal", pressed))
+	radio_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("radio", pressed))
+	heat_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("heat", pressed))
+	light_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("light", pressed))
+	gamma_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("gamma", pressed))
 	gravity_toggle.toggled.connect(func(pressed: bool): _toggle_sensor("gravity", pressed))
 	observe_button.pressed.connect(_observe_next)
 	add_worker_button.pressed.connect(_on_add_worker)
@@ -43,6 +48,7 @@ func _on_remove_worker() -> void:
 	GameState.remove_worker_from_target(ENV_TASK_ID)
 
 func _on_map_process(_delta: float) -> void:
+	_lock_camera_to_player_state()
 	_update_hover_card()
 
 
@@ -100,31 +106,36 @@ func _observe_next() -> void:
 	_refresh()
 
 func _refresh() -> void:
-	var sensors := GameState.unlocked_sensors.keys()
-	sensors.sort()
-	var sensor_text := "\n- ".join(sensors)
-	var visible_objects := ObservationSystem.get_visible_objects()
-	var object_lines: Array[String] = []
-	for obj_data in visible_objects:
-		var obj_id := str(obj_data.get("id", ""))
-		var title := str(obj_data.get("title", obj_id))
-		var observed := GameState.observed_environment.has(obj_id)
-		object_lines.append("- %s%s" % [title, " (observed)" if observed else ""])
-	if object_lines.is_empty():
-		object_lines.append("- No objects available with current sensors")
-
-	optical_toggle.button_pressed = GameState.get_sensor_tier("optical") > 0
-	thermal_toggle.button_pressed = GameState.get_sensor_tier("thermal") > 0
+	radio_toggle.button_pressed = GameState.get_sensor_tier("radio") > 0
+	heat_toggle.button_pressed = GameState.get_sensor_tier("heat") > 0
+	light_toggle.button_pressed = GameState.get_sensor_tier("light") > 0
+	gamma_toggle.button_pressed = GameState.get_sensor_tier("gamma") > 0
 	gravity_toggle.button_pressed = GameState.get_sensor_tier("gravity") > 0
 	observe_button.disabled = ObservationSystem.get_next_observable_id() == ""
 	var workers := GameState.get_target_workers(ENV_TASK_ID)
 	var worker_text := WORKER_DISPLAY_UTILS.format_worker_mix(workers)
 	WORKER_ICON_STRIP.populate(worker_task_icons, workers)
-	worker_task_status.text = "Progress: %d%% | Power: %.2f\nWorkers: %s" % [
+	worker_task_status.text = "Progress: %d%% | Power: %.2f\nSensors: %s\nWorkers: %s" % [
 		int(round(GameState.get_target_progress_ratio(ENV_TASK_ID) * 100.0)),
 		GameState.get_target_total_power(ENV_TASK_ID),
+		_build_sensor_text(),
 		worker_text,
 	]
+
+
+func _build_sensor_text() -> String:
+	var parts: Array[String] = []
+	for sensor_id in ["radio", "heat", "light", "gamma", "gravity"]:
+		parts.append("%s:%d" % [sensor_id, GameState.get_sensor_tier(sensor_id)])
+	return " ".join(parts)
+
+
+func _lock_camera_to_player_state() -> void:
+	var state: Dictionary = world_root.get_player_state()
+	var player_position: Vector2 = state.get("position", Vector2.ZERO)
+	var player_rotation := float(state.get("rotation", 0.0))
+	camera.position = player_position
+	camera.rotation = player_rotation
 
 func _update_hover_card() -> void:
 	if not _is_mouse_over_map():
