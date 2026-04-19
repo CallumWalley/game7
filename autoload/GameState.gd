@@ -49,6 +49,13 @@ var cycle: int = 0
 @export var capture_resistance_min: float = 0.5
 @export var capture_resistance_max: float = 3.0
 @export var capture_decay_per_cycle: float = 0.35
+@export var ship_rotation_radians: float = 0.0
+@export var ship_rotational_velocity_per_cycle: float = 0.045
+@export var sun_world_angle_radians: float = 0.0
+
+var environment_ship_position: Vector2 = Vector2.ZERO
+var environment_sun_position: Vector2 = Vector2.ZERO
+var _environment_has_sun_position: bool = false
 
 var food: float = 120.0
 var last_tick_food_consumed: float = 0.0
@@ -137,10 +144,45 @@ func get_world_seeded_value(key: String) -> int:
 func advance_cycles(amount: int, _reason: String = "") -> void:
 	var steps: int = maxi(amount, 0)
 	for _i in steps:
+		_advance_ship_rotation()
 		_simulate_food_tick()
 		_simulate_worker_tick()
 		cycle += 1
 	emit_signal("state_changed")
+
+
+func _advance_ship_rotation() -> void:
+	ship_rotation_radians = wrapf(ship_rotation_radians + ship_rotational_velocity_per_cycle, -PI, PI)
+	_update_sun_angle_from_environment_positions()
+
+
+func sync_environment_ship_and_sun(ship_pos: Vector2, sun_pos: Vector2, has_sun: bool) -> void:
+	environment_ship_position = ship_pos
+	environment_sun_position = sun_pos
+	_environment_has_sun_position = has_sun
+	_update_sun_angle_from_environment_positions()
+
+
+func _update_sun_angle_from_environment_positions() -> void:
+	if not _environment_has_sun_position:
+		return
+	var to_sun := environment_sun_position - environment_ship_position
+	if to_sun.length_squared() <= 0.0:
+		return
+	sun_world_angle_radians = to_sun.angle()
+
+
+func get_sun_direction_world() -> Vector2:
+	return Vector2.RIGHT.rotated(sun_world_angle_radians)
+
+
+func get_surface_sun_factor(surface_local_direction: Vector2) -> float:
+	var local_dir := surface_local_direction
+	if local_dir.length_squared() <= 0.0:
+		return 0.0
+	var surface_world_dir := local_dir.normalized().rotated(ship_rotation_radians)
+	var sun_dir := get_sun_direction_world().normalized()
+	return maxf(surface_world_dir.dot(sun_dir), 0.0)
 
 
 func _simulate_food_tick() -> void:
@@ -235,9 +277,9 @@ func _simulate_worker_tick() -> void:
 			worker_targets[target_id] = target
 		elif gain > 0.0:
 			target["progress"] = float(target.get("progress", 0.0)) + gain
-		var progress_goal := maxf(float(target.get("progress_goal", 0.0)), 0.0)
-		if progress_goal > 0.0:
-			target["progress"] = clampf(float(target.get("progress", 0.0)), 0.0, progress_goal)
+		var target_progress_goal := maxf(float(target.get("progress_goal", 0.0)), 0.0)
+		if target_progress_goal > 0.0:
+			target["progress"] = clampf(float(target.get("progress", 0.0)), 0.0, target_progress_goal)
 			worker_targets[target_id] = target
 		if target.get("kind", "") != "capture_node":
 			continue
@@ -661,7 +703,16 @@ func can_create_capture_task(target_node: Node) -> bool:
 
 
 func can_assign_to_component(component: Node) -> bool:
-	return bool(component.call("is_connected_to_player_node"))
+	if not bool(component.get("is_enabled")):
+		return false
+	if not bool(component.call("is_connected_to_player_node")):
+		return false
+	if component.has_method("allows_worker_assignment") and not bool(component.call("allows_worker_assignment")):
+		return false
+	var target_id := str(component.call("get_worker_target_id"))
+	var required_power := float(component.get("required_power"))
+	var current_power := get_target_total_power(target_id)
+	return current_power < required_power
 
 
 func unlock_body_node(node_id: String) -> void:
@@ -810,7 +861,7 @@ func calculate_total_food_from_adipose() -> float:
 	return total
 
 
-func _distribute_glucose_production(amount: float, source: Node) -> void:
+func _distribute_glucose_production(amount: float, _source: Node) -> void:
 	"""Distribute glucose production from source (e.g., PhotosyntheticTissue) to owned ADIs proportionally by charge rate."""
 	if _owned_adi_components.is_empty():
 		return
@@ -985,11 +1036,14 @@ func _render_component_state_text(component_type_id: String, text_segments: Arra
 func _substitute_component_tokens(text: String, component_type_id: String) -> String:
 	var result := text
 	var controlled_count := get_controlled_component_count(component_type_id)
-	var food_per := float(get_component_property(component_type_id, "food_output_per_cycle", 0.0))
+	var output_per_cycle := float(get_component_property(component_type_id, "glucose_production_per_cycle", -1.0))
+	if output_per_cycle < 0.0:
+		output_per_cycle = float(get_component_property(component_type_id, "food_output_per_cycle", 0.0))
 	result = result.replace("{required_power}", str(get_component_property(component_type_id, "required_power", "?")))
-	result = result.replace("{food_output_per_cycle}", str(food_per))
+	result = result.replace("{food_output_per_cycle}", str(output_per_cycle))
+	result = result.replace("{glucose_production_per_cycle}", str(output_per_cycle))
 	result = result.replace("{controlled_count}", str(controlled_count))
-	result = result.replace("{total_food_contribution}", "%.1f" % (controlled_count * food_per))
+	result = result.replace("{total_food_contribution}", "%.1f" % (controlled_count * output_per_cycle))
 	return result
 
 

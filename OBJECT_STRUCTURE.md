@@ -71,10 +71,20 @@ Body map layout and links are authored directly in scenes (`BodyMap.tscn`) via `
 
 ### `PhotosyntheticTissue`
 - Extends: `BodyObject`
-- Placeholder component with worker target:
+- Worker-powered glucose input component:
   - preferred type + multiplier support
   - requires link connection to player node
-  - activates at required power and produces food per cycle
+  - activates at required power and produces glucose per cycle
+  - production scales by cosine of angle between tissue-facing direction and sun direction
+  - location authored per component as `forward`/`aft`/`port`/`starboard` with optional secondary side for diagonals
+
+### `GameState` sunlight model
+- Owns shared ship-sun orientation state for all systems:
+  - `ship_rotation_radians`
+  - `ship_rotational_velocity_per_cycle`
+  - `sun_world_angle_radians`
+- `sun_world_angle_radians` is derived from Environment map positions (ship position -> sun position vector).
+- Advances ship rotation once per cycle and provides `get_surface_sun_factor(...)` for component output scaling.
 
 ### `LinksLayer`
 - Extends: `Node2D`

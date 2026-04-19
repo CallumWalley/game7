@@ -23,6 +23,8 @@ var player_velocity: Vector2 = Vector2.ZERO
 var player_sidebar_visible: bool = true
 var _active_sensor_filter: String = "light"
 var _player_spawn_initialized: bool = false
+var _sun_position: Vector2 = Vector2.ZERO
+var _has_sun_position: bool = false
 
 @onready var orbits_layer: Node2D = $OrbitsLayer
 @onready var objects_layer: Node2D = $ObjectsLayer
@@ -39,6 +41,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_integrate_player_motion(delta)
 	_observe_nearby_visible_objects()
+	GameState.sync_environment_ship_and_sun(player_position, _sun_position, _has_sun_position)
 	player_marker.position = player_position
 	player_marker.rotation = player_rotation
 
@@ -83,6 +86,8 @@ func _build_system_objects() -> void:
 		break
 	if has_sun:
 		_build_orbit_visuals(system_objects, sun_position)
+	_sun_position = sun_position
+	_has_sun_position = has_sun
 
 	for obj_data in system_objects:
 		var kind := str(obj_data.get("kind", ""))

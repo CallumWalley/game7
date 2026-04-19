@@ -88,7 +88,7 @@ func _update_ui_unlock_flags() -> void:
 	var adi_count := GameState.get_owned_adipose_tissue_count()
 	var food_counter_unlocked := adi_count >= 2
 	
-	var previous_flag := progression_flags.get("ui:food_counter_visible", false)
+	var previous_flag: bool = bool(progression_flags.get("ui:food_counter_visible", false))
 	if food_counter_unlocked != previous_flag:
 		progression_flags["ui:food_counter_visible"] = food_counter_unlocked
 

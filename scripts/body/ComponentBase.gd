@@ -9,11 +9,11 @@ const NODE_FILL_SHADER := preload("res://shaders/node_fill.gdshader")
 
 @export var required_power: float = 1.0
 @export var non_preferred_multiplier: float = 0.3
+@export var is_enabled: bool = true
 
 @onready var _polygon: Polygon2D = $Polygon
 @onready var _outline: Line2D = $Outline
 @onready var _hover_area: Area2D = $HoverArea
-@onready var _collision: CollisionPolygon2D = $HoverArea/CollisionPolygon
 
 var is_activated: bool = false
 var controlling_entity: int = GameState.ENTITY_NONE
@@ -24,6 +24,7 @@ var component_type_id: String:
 
 signal clicked(component, button_index: int)
 signal activation_changed(active: bool)
+signal enabled_changed(enabled: bool)
 signal hovered(component)
 signal unhovered(component)
 
@@ -74,11 +75,32 @@ func get_worker_target_id() -> String:
 	return GameState.ensure_component_target(self)
 
 
+func allows_worker_assignment() -> bool:
+	return true
+
+
+func can_manual_toggle() -> bool:
+	return true
+
+
+func set_enabled(value: bool) -> void:
+	if is_enabled == value:
+		return
+	is_enabled = value
+	enabled_changed.emit(value)
+	GameState.state_changed.emit()
+	update_activation_from_workers()
+
+
 func update_activation_from_workers() -> bool:
-	var powered := GameState.get_target_total_power(get_worker_target_id()) >= required_power and is_connected_to_player_node()
-	if powered != is_activated:
-		is_activated = powered
-		controlling_entity = GameState.ENTITY_PLAYER if powered else GameState.ENTITY_NONE
+	var active := false
+	if allows_worker_assignment():
+		active = is_enabled and GameState.get_target_total_power(get_worker_target_id()) >= required_power and is_connected_to_player_node()
+	else:
+		active = is_enabled and is_connected_to_player_node()
+	if active != is_activated:
+		is_activated = active
+		controlling_entity = GameState.ENTITY_PLAYER if active else GameState.ENTITY_NONE
 		if is_activated:
 			GameState.report_component_controlled(self)
 		activation_changed.emit(is_activated)

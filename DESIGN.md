@@ -145,7 +145,8 @@ Each item in the array defines:
 **Supported `{token}` substitutions (resolved at render time):**
 - `{controlled_count}` — count of components of this type with `is_activated == true`.
 - `{required_power}` — from `GameState.register_component_properties`.
-- `{food_output_per_cycle}` — from `GameState.register_component_properties`.
+- `{food_output_per_cycle}` — per-cycle output from component properties (legacy name).
+- `{glucose_production_per_cycle}` — per-cycle glucose output from component properties.
 - `{total_food_contribution}` — `controlled_count × food_output_per_cycle`.
 
 **Trigger points:**
@@ -154,7 +155,7 @@ Each item in the array defines:
 
 **Adding a new component entry (no code changes required beyond the component script):**
 1. Add `@export var component_type_id: String = "my_type"` to the component script.
-2. Call `GameState.register_component_properties(component_type_id, {"required_power": ..., "food_output_per_cycle": ...})` in `_ready()`.
+2. Call `GameState.register_component_properties(component_type_id, {"required_power": ..., "glucose_production_per_cycle": ...})` in `_ready()`.
 3. Add an entry object to `data/component_mind_entries.json` with the matching `component_type_id`, a `mind_entry_id`, and `states[]`.
 4. Triggers and display are automatic.
 
@@ -231,6 +232,7 @@ Use `{token}` placeholders for values that update as the game progresses. This k
 - `{total_food_contribution}` — aggregate resource output.
 - `{required_power}` — power threshold for activation.
 - `{food_output_per_cycle}` — per-unit output.
+- `{glucose_production_per_cycle}` — per-unit glucose output.
 
 Write the surrounding sentence so it reads correctly at count 0 and count 5+. ("Currently controlling {controlled_count} unit(s)." is better than "You control {controlled_count}." for count=1.)
 

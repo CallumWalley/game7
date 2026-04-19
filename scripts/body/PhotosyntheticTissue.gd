@@ -5,6 +5,8 @@ extends "res://scripts/body/ComponentBase.gd"
 ## Charges connected adipose tissue components proportionally by their charge rates.
 
 @export var glucose_production_per_cycle: float = 5.0
+@export_enum("forward", "aft", "port", "starboard") var hull_side_primary: String = "forward"
+@export_enum("none", "forward", "aft", "port", "starboard") var hull_side_secondary: String = "none"
 
 
 func _get_component_type_id() -> String:
@@ -19,6 +21,8 @@ func _get_registered_properties() -> Dictionary:
 	return {
 		"required_power": required_power,
 		"glucose_production_per_cycle": glucose_production_per_cycle,
+		"hull_side_primary": hull_side_primary,
+		"hull_side_secondary": hull_side_secondary,
 	}
 
 
@@ -39,7 +43,37 @@ func _inactive_fill_secondary() -> Color:
 
 
 func get_glucose_production_per_cycle() -> float:
-	return glucose_production_per_cycle if is_activated else 0.0
+	if not is_activated:
+		return 0.0
+	var sun_factor := GameState.get_surface_sun_factor(_get_surface_local_direction())
+	return glucose_production_per_cycle * sun_factor
+
+
+func get_sun_exposure_factor() -> float:
+	return GameState.get_surface_sun_factor(_get_surface_local_direction())
+
+
+func _get_surface_local_direction() -> Vector2:
+	var dir := _side_to_direction(hull_side_primary)
+	if hull_side_secondary != "none":
+		dir += _side_to_direction(hull_side_secondary)
+	if dir.length_squared() <= 0.0:
+		return Vector2.RIGHT
+	return dir.normalized()
+
+
+func _side_to_direction(side: String) -> Vector2:
+	match side:
+		"forward":
+			return Vector2.RIGHT
+		"aft":
+			return Vector2.LEFT
+		"port":
+			return Vector2.UP
+		"starboard":
+			return Vector2.DOWN
+		_:
+			return Vector2.ZERO
 
 
 func get_food_output_per_cycle() -> float:

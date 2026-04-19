@@ -73,8 +73,10 @@ func _get_unlocked_entries() -> Array[Dictionary]:
 	var dynamic_by_id: Dictionary = {}
 	var dynamic_order: Array[String] = []
 	var dynamic_entries: Array[Dictionary] = []
-	for raw_item in GameState.get_dynamic_mind_entries():
-		dynamic_entries.append(raw_item as Dictionary)
+	var runtime_dynamic_entries: Array = GameState.get_dynamic_mind_entries()
+	for i in runtime_dynamic_entries.size():
+		var raw_item: Dictionary = runtime_dynamic_entries[i] as Dictionary
+		dynamic_entries.append(raw_item)
 	for i in dynamic_entries.size():
 		var dynamic_item: Dictionary = dynamic_entries[i]
 		var dynamic_id := str(dynamic_item.get("id", "")).strip_edges()
@@ -196,7 +198,7 @@ func _build_thought_divergence_placeholder(divergence_id: String, options: Array
 	if divergence_id == "":
 		return "[i](missing thoughtDivergence id)[/i]"
 	var option_values: Array[String] = []
-	for option in options:
+	for option: Variant in options:
 		option_values.append(str(option))
 	var token := "td%d" % _inline_var_option_seq
 	_inline_var_option_seq += 1
@@ -220,7 +222,9 @@ func _on_entry_text_meta_clicked(meta: Variant) -> void:
 
 func _show_thought_divergence_dropdown(token: String) -> void:
 	var option_data: Dictionary = _inline_var_options[token]
-	var option_values: Array[String] = option_data.get("options", [])
+	var option_values: Array[String] = []
+	for option: Variant in option_data.get("options", []):
+		option_values.append(str(option))
 	if option_values.is_empty():
 		return
 	_thought_divergence_menu.clear()
@@ -239,7 +243,9 @@ func _on_thought_divergence_option_selected(option_index: int) -> void:
 	var divergence_id := str(option_data.get("thought_divergence_id", "")).strip_edges()
 	if divergence_id == "":
 		return
-	var option_values: Array[String] = option_data.get("options", [])
+	var option_values: Array[String] = []
+	for option: Variant in option_data.get("options", []):
+		option_values.append(str(option))
 	if option_index < 0 or option_index >= option_values.size():
 		return
 	var selected_value := str(option_values[option_index])

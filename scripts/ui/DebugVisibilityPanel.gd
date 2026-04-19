@@ -107,13 +107,13 @@ func _build_panel() -> void:
 	_update_option_states()
 
 
-func _on_visibility_changed(feature: String, visible: bool) -> void:
+func _on_visibility_changed(feature: String, feature_visible: bool) -> void:
 	if feature.begins_with("worker_type_"):
 		var node_type := feature.trim_prefix("worker_type_")
 		if node_type in _type_buttons:
-			_type_buttons[node_type].button_pressed = visible
+			_type_buttons[node_type].button_pressed = feature_visible
 	elif feature in _toggle_buttons:
-		_toggle_buttons[feature].button_pressed = visible
+		_toggle_buttons[feature].button_pressed = feature_visible
 
 
 func _add_option_toggle(label_text: String, option_key: String) -> void:

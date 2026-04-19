@@ -82,27 +82,27 @@ func _on_sensor_toggled(pressed: bool, sensor_id: String) -> void:
 
 
 func _refresh() -> void:
-	var available_filters: Array[String] = []
+	var unlocked_filters: Array[String] = []
 	for sensor_id in SENSOR_IDS:
-		var button := _get_sensor_button(sensor_id)
-		var is_unlocked := GameState.get_sensor_tier(sensor_id) > 0
-		button.visible = is_unlocked
-		if is_unlocked:
-			available_filters.append(sensor_id)
+		var sensor_button: CheckBox = _get_sensor_button(sensor_id)
+		var unlocked := GameState.get_sensor_tier(sensor_id) > 0
+		sensor_button.visible = unlocked
+		if unlocked:
+			unlocked_filters.append(sensor_id)
 
-	_has_available_filters = not available_filters.is_empty()
+	_has_available_filters = not unlocked_filters.is_empty()
 	_apply_sidebar_visibility_from_player_state(world_root.get_player_state())
-	if available_filters.is_empty():
+	if unlocked_filters.is_empty():
 		_active_sensor_filter = ""
 		world_root.set_active_sensor_filter("")
 		return
 
-	if not available_filters.has(_active_sensor_filter):
-		_active_sensor_filter = available_filters[0]
+	if not unlocked_filters.has(_active_sensor_filter):
+		_active_sensor_filter = unlocked_filters[0]
 
-	for sensor_id in available_filters:
-		var button := _get_sensor_button(sensor_id)
-		button.button_pressed = sensor_id == _active_sensor_filter
+	for sensor_id in unlocked_filters:
+		var sensor_button: CheckBox = _get_sensor_button(sensor_id)
+		sensor_button.button_pressed = sensor_id == _active_sensor_filter
 
 	world_root.set_active_sensor_filter(_active_sensor_filter)
 

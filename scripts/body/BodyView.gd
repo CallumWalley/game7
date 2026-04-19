@@ -40,6 +40,8 @@ const WORKERBENCH_NODE_PADDING_PX: float = 20.0
 const WORKERBENCH_COMPONENT_MARGIN_PX: float = 22.0
 const WORKERBENCH_COMPONENT_STEP_PX: float = 24.0
 const WORKERBENCH_COMPONENT_RISE_PX: float = 14.0
+const ACTION_POPUP_WARN_COLOR: Color = Color(1.0, 0.86, 0.76, 0.0)
+const ACTION_POPUP_INFO_COLOR: Color = Color(0.82, 0.94, 1.0, 0.0)
 
 const VISION_SHADER := preload("res://shaders/vision_mask.gdshader")
 
@@ -135,13 +137,18 @@ func _on_cluster_clicked(cluster, button_index: int) -> void:
 	if button_index == MOUSE_BUTTON_LEFT:
 		if not bool(cluster.call("is_player_owned")):
 			if not GameState.can_create_capture_task(cluster):
+				_show_world_popup(cluster, "Cannot reach this cluster yet.", ACTION_POPUP_WARN_COLOR)
 				return
 			var target_id := GameState.ensure_capture_task_for_node(cluster)
 			GameState.assign_worker_to_target(target_id)
 			_update_info()
 			return
-		if not bool(cluster.get("is_enabled")) and bool(cluster.call("can_player_enable")):
-			cluster.call("set_enabled", true)
+		if not bool(cluster.get("is_enabled")):
+			if bool(cluster.call("can_player_enable")):
+				cluster.call("set_enabled", true)
+				_show_world_popup(cluster, "Activation on.", ACTION_POPUP_INFO_COLOR)
+			else:
+				_show_world_popup(cluster, "Cannot activate while in coma.", ACTION_POPUP_WARN_COLOR)
 		_refresh_key()
 		_update_info()
 		return
@@ -154,18 +161,39 @@ func _on_cluster_clicked(cluster, button_index: int) -> void:
 			return
 		if bool(cluster.call("is_player_owned")) and bool(cluster.get("is_enabled")):
 			cluster.call("set_enabled", false)
+			_show_world_popup(cluster, "Activation off.", ACTION_POPUP_INFO_COLOR)
 		_update_info()
 
 
 func _on_component_clicked(component: Node, button_index: int) -> void:
 	var target_id := GameState.ensure_component_target(component)
 	if button_index == MOUSE_BUTTON_LEFT:
+		if bool(component.call("can_manual_toggle")) and not bool(component.get("is_enabled")):
+			component.call("set_enabled", true)
+			var blockers := _get_component_activation_blockers(component)
+			if blockers.is_empty():
+				_show_world_popup(component, "Activation on.", ACTION_POPUP_INFO_COLOR)
+			else:
+				_show_world_popup(component, "Activation blocked: %s" % ", ".join(blockers), ACTION_POPUP_WARN_COLOR)
+			_update_info()
+			return
 		if not GameState.can_assign_to_component(component):
+			var reason := _get_component_assignment_block_reason(component)
+			if reason != "":
+				_show_world_popup(component, reason, ACTION_POPUP_WARN_COLOR)
+			_update_info()
 			return
 		GameState.assign_worker_to_target(target_id)
+		_update_info()
 		return
 	if button_index == MOUSE_BUTTON_RIGHT:
+		if bool(component.call("can_manual_toggle")) and bool(component.get("is_enabled")):
+			component.call("set_enabled", false)
+			_show_world_popup(component, "Activation off.", ACTION_POPUP_INFO_COLOR)
+			_update_info()
+			return
 		GameState.remove_worker_from_target(target_id)
+		_update_info()
 
 
 func _update_info() -> void:
@@ -231,6 +259,8 @@ func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
 		if details != "":
 			details += "\n\n"
 		details += "Status: %s" % emotion_txt
+		if bool(cluster.call("is_player_owned")):
+			details += "\nActivation: %s" % _describe_cluster_activation(cluster)
 		if not bool(cluster.call("is_player_owned")):
 			var task_id := GameState.get_capture_task_id_if_exists(cluster)
 			if task_id != "":
@@ -275,10 +305,10 @@ func _set_component_card_content(card: HoverInfoCard, component: Node) -> void:
 	if understanding_state >= 2:
 		if details != "":
 			details += "\n\n"
+		details += "Activation: %s" % _describe_component_activation(component)
 		details += "Workers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
 		details += "\nPower: %.2f / %.2f" % [current_power, required_power]
 		details += "\nConnected: %s" % ("yes" if connected else "no")
-		details += "\nActive: %s" % ("yes" if bool(component.get("is_activated")) else "no")
 	else:
 		if details != "":
 			details += "\n\n"
@@ -356,16 +386,69 @@ func _on_cluster_ownership_changed(cluster: Node) -> void:
 	_suppress_status_popup_once[cluster.get_instance_id()] = true
 
 
+func _describe_cluster_activation(cluster: Node) -> String:
+	if not bool(cluster.get("is_enabled")):
+		return "off"
+	if not bool(cluster.call("can_player_enable")):
+		return "blocked (coma)"
+	return "running"
+
+
+func _describe_component_activation(component: Node) -> String:
+	if not bool(component.get("is_enabled")):
+		return "off"
+	if bool(component.get("is_activated")):
+		return "running"
+	var blockers := _get_component_activation_blockers(component)
+	if blockers.is_empty():
+		return "blocked"
+	return "blocked (%s)" % ", ".join(blockers)
+
+
+func _get_component_activation_blockers(component: Node) -> Array[String]:
+	var blockers: Array[String] = []
+	if not bool(component.get("is_enabled")):
+		blockers.append("switch is off")
+	if not bool(component.call("is_connected_to_player_node")):
+		blockers.append("not connected")
+	if bool(component.call("allows_worker_assignment")):
+		var target_id: String = str(component.call("get_worker_target_id"))
+		var required_power := float(component.get("required_power"))
+		var current_power: float = GameState.get_target_total_power(target_id)
+		if current_power < required_power:
+			blockers.append("needs more power")
+	return blockers
+
+
+func _get_component_assignment_block_reason(component: Node) -> String:
+	if not bool(component.get("is_enabled")):
+		return "Activation is off."
+	if not bool(component.call("is_connected_to_player_node")):
+		return "No route from owned clusters."
+	if not bool(component.call("allows_worker_assignment")):
+		return "This component does not take workers."
+	var target_id: String = str(component.call("get_worker_target_id"))
+	var required_power := float(component.get("required_power"))
+	var current_power: float = GameState.get_target_total_power(target_id)
+	if current_power >= required_power:
+		return "Already has enough power."
+	return ""
+
+
 func _show_status_popup(cluster: Node, text: String) -> void:
+	_show_world_popup(cluster, text)
+
+
+func _show_world_popup(anchor: Node2D, text: String, tint: Color = Color(0.96, 0.97, 1.0, 0.0)) -> void:
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.modulate = Color(0.96, 0.97, 1.0, 0.0)
+	label.modulate = tint
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay.add_child(label)
 
-	var base_pos := _world_to_overlay(cluster.global_position)
+	var base_pos := _world_to_overlay(anchor.global_position)
 	var jitter := Vector2(randf_range(-34.0, 34.0), randf_range(-28.0, 18.0))
 	label.position = base_pos + jitter
 

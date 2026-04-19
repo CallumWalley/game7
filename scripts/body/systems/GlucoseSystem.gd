@@ -2,7 +2,7 @@ extends RefCounted
 
 ## Reusable glucose storage and flow system.
 ## Handles charge/discharge with rate limits and fill tracking.
-## Used by both NerveCluster and Biological (adipose) components.
+## Used by both NerveCluster and AdiposeTissue components.
 
 class_name GlucoseSystem
 
@@ -25,7 +25,7 @@ func charge(requested: float, is_active: bool = true) -> float:
 	if not is_active:
 		return 0.0
 	var space_available := max_glucose - current_glucose
-	var amount := minf(requested, space_available, charge_rate)
+	var amount := minf(minf(requested, space_available), charge_rate)
 	current_glucose += amount
 	return amount
 
@@ -35,7 +35,7 @@ func charge(requested: float, is_active: bool = true) -> float:
 func discharge(requested: float, is_active: bool = true) -> float:
 	if not is_active:
 		return 0.0
-	var amount := minf(requested, current_glucose, discharge_rate)
+	var amount := minf(minf(requested, current_glucose), discharge_rate)
 	current_glucose -= amount
 	return amount
 

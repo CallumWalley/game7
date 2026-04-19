@@ -1,6 +1,8 @@
 @tool
 extends "res://scripts/body/ThoughtNode.gd"
 
+const GLUCOSE_SYSTEM := preload("res://scripts/body/systems/GlucoseSystem.gd")
+
 ## Small biological compute cluster. Primary node type on the body map.
 ## Uses an irregular organic polygon plus wobble animation.
 ## Glucose managed by composed GlucoseSystem.
@@ -15,6 +17,9 @@ const WOBBLE_MAX: float = 2.7
 const WOBBLE_FREQ_MIN: float = 1.3
 const WOBBLE_FREQ_MAX: float = 3.4
 const DEFAULT_GLUCOSE: float = 100.0
+
+@export_range(0.0, 100.0, 1.0) var random_initial_glucose_min: float = 28.0
+@export_range(0.0, 100.0, 1.0) var random_initial_glucose_max: float = 52.0
 
 var _base_polygon: PackedVector2Array = PackedVector2Array()
 var _vertex_phases: Array[float] = []
@@ -38,13 +43,10 @@ func _generate_runtime_state_on_first_visibility() -> void:
 	if _runtime_generated:
 		return
 	if _glucose == null:
-		var initial_glucose := DEFAULT_GLUCOSE
-		if Engine.is_editor_hint():
-			initial_glucose = 40.0
-		else:
-			initial_glucose = GameState.sample_initial_node_glucose_percent()
-		_glucose = GlucoseSystem.new(100.0, 0.0, 0.0)  # NeuronCluster doesn't use charge/discharge
-		_glucose.set_glucose(initial_glucose)
+		var lo := minf(random_initial_glucose_min, random_initial_glucose_max)
+		var hi := maxf(random_initial_glucose_min, random_initial_glucose_max)
+		_glucose = GLUCOSE_SYSTEM.new(100.0, 0.0, 0.0)  # NeuronCluster doesn't use charge/discharge
+		_glucose.set_glucose(_rng.randf_range(lo, hi))
 	super._generate_runtime_state_on_first_visibility()
 	glucose_changed.emit(int(round(_glucose.current_glucose)))
 

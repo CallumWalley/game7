@@ -181,21 +181,21 @@ func _apply_initial_debug_visibility() -> void:
 	_update_global_key()
 
 
-func _on_debug_visibility_changed(feature: String, visible: bool) -> void:
+func _on_debug_visibility_changed(feature: String, feature_visible: bool) -> void:
 	"""Handle debug visibility changes."""
 	match feature:
 		"mind_window":
-			_mind_btn.visible = visible
-			_mind_btn.disabled = not visible
-			if _current_tab == 0 and not visible:
+			_mind_btn.visible = feature_visible
+			_mind_btn.disabled = not feature_visible
+			if _current_tab == 0 and not feature_visible:
 				_switch_tab(1)
 		"environment_window":
-			_env_btn.visible = visible
-			_env_btn.disabled = not visible
-			if _current_tab == 2 and not visible:
+			_env_btn.visible = feature_visible
+			_env_btn.disabled = not feature_visible
+			if _current_tab == 2 and not feature_visible:
 				_switch_tab(1)
 		"time_controls":
-			time_controls.visible = visible
+			time_controls.visible = feature_visible
 		"timeline_bar":
 			_update_timeline_visibility()
 		_:
