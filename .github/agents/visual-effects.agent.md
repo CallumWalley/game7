@@ -24,6 +24,7 @@ When implementing a new visual effect type you haven't seen in the existing shad
 - Store tunables as `uniform` parameters with sensible `hint_range` hints so designers can adjust them without touching shader math.
 - Reuse `PolygonVisualController` for polygon-based visuals; extend it rather than duplicating its logic.
 - Do not encode gameplay state directly into shaders — drive uniforms from GDScript that reads `GameState` or `EventBus`.
+- Prefer fail-fast/lazy coding in GDScript glue around effects: avoid defensive guards unless the branch is explicitly expected in normal gameplay.
 - Never silently break existing shader uniform names; keep backward-compatible defaults.
 - Match the visual palette and feeling of existing effects before adding new ones.
 - Keep shader code readable: comment non-obvious math, name intermediate variables descriptively.

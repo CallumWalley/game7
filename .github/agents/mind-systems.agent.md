@@ -16,6 +16,7 @@ Keep memories, progression, unlock state, and player-facing records consistent, 
 - Keep trigger logic explicit, deterministic, and easy to audit.
 - Separate content data from progression plumbing.
 - Preserve the four knowledge progression stages defined in `DESIGN.md` (observation → unlock → unread → integrated).
+- Prefer fail-fast/lazy coding: avoid defensive guards (`has_method`, `has_signal`, broad null/validity checks) unless the branch is explicitly expected in normal gameplay.
 - Keep terminology aligned with `DESIGN.md`, `UI.md`, and `STORY.md`.
 
 ## Workflow

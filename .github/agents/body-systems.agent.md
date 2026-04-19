@@ -15,6 +15,7 @@ Keep body-side mechanics coherent across nodes, components, map interactions, fr
 - Treat the Body view as gameplay logic first and presentation second. Delegate shader code, polygon visual controllers, and visual effects to the Visual Effects agent.
 - Keep body rules aligned with shared `GameState`, `TimeSystem`, `EventBus`, and progression hooks.
 - Preserve clear ownership of node, component, fragment, and resource state.
+- Prefer fail-fast/lazy coding: avoid defensive guards (`has_method`, `has_signal`, broad null/validity checks) unless the branch is explicitly expected in normal gameplay.
 - Prefer incremental changes over broad rewrites when behavior can stay stable.
 - Keep naming and terminology consistent with `DESIGN.md` and `OBJECT_STRUCTURE.md`.
 

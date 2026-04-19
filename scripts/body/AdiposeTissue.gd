@@ -178,9 +178,3 @@ func _animate_color_transition(from_active: bool, to_active: bool) -> void:
 	)
 
 
-func get_mind_entry_data() -> Dictionary:
-	return {
-		"id": "component_adipose_tissue",
-		"title": "Adipose Tissue",
-		"text": "A dense glucose storage buffer that doesn't require workers—only connection to your controlled systems. Accumulates and releases glucose to meet demand.",
-	}

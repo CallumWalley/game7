@@ -17,6 +17,7 @@ Use this folder as the source of truth for which specialist should handle a task
 2. If readability, hierarchy, icon consistency, or signal clarity is the main problem, route to `UI Leader`.
 3. If wording, tone, beat timing, or term consistency is the main problem, route to `Story Consultant`.
 4. If multiple systems need coordinated change or docs must be reconciled, route to `Leader`.
+5. Coding style default for all agents: prefer fail-fast/lazy code; only gate with `if` when a branch is explicitly expected in normal gameplay.
 
 ## Escalation Pattern
 

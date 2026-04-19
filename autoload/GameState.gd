@@ -213,8 +213,7 @@ func _simulate_food_tick() -> void:
 	# Calculate available food from ADIs
 	var total_discharge_rate := 0.0
 	for adi in _owned_adi_components:
-		if adi != null and adi.has_method("get_discharge_rate"):
-			total_discharge_rate += float(adi.call("get_discharge_rate"))
+		total_discharge_rate += float(adi.call("get_discharge_rate"))
 
 	var available_from_discharge := minf(total_discharge_rate, calculate_total_food_from_adipose())
 	var total_available := available_from_discharge + food_regen_per_tick
@@ -237,8 +236,6 @@ func _simulate_food_tick() -> void:
 	# Discharge glucose from ADIs proportionally to meet consumption
 	if consumed_total > 0.0 and total_discharge_rate > 0.0:
 		for adi in _owned_adi_components:
-			if adi == null or not adi.has_method("get_discharge_rate"):
-				continue
 			var adi_discharge_rate := float(adi.call("get_discharge_rate"))
 			var proportion := adi_discharge_rate / total_discharge_rate if total_discharge_rate > 0.0 else 0.0
 			var adi_discharge_amount := consumed_total * proportion
@@ -307,7 +304,7 @@ func _simulate_worker_tick() -> void:
 		
 		# Handle photosynthetic tissue: charge connected ADIs
 		var type_id: Variant = component.get("component_type_id")
-		if type_id != null and str(type_id) == "photosynthetic_tissue":
+		if str(type_id) == "photosynthetic_tissue":
 			var production := float(component.call("get_glucose_production_per_cycle"))
 			if production > 0.0:
 				_distribute_glucose_production(production, component)
@@ -457,9 +454,7 @@ func _get_assigned_worker_counts_global() -> Dictionary:
 
 
 func _resolve_node_type(node: Node) -> String:
-	if node.has_method("get_worker_node_type"):
-		return str(node.call("get_worker_node_type"))
-	return NODE_TYPE_NEURON_CLUSTER
+	return str(node.call("get_worker_node_type"))
 
 
 func ensure_capture_task_for_node(target_node: Node) -> String:
@@ -498,12 +493,8 @@ func ensure_component_target(component: Node) -> String:
 	var target_id := "component|%s" % component_path
 	if worker_targets.has(target_id):
 		return target_id
-	var preferred_type := NODE_TYPE_NEURON_CLUSTER
-	if component.has_method("get_preferred_node_type"):
-		preferred_type = str(component.call("get_preferred_node_type"))
-	var target_multiplier := non_preferred_power_multiplier
-	if component.has_method("get_non_preferred_multiplier"):
-		target_multiplier = float(component.call("get_non_preferred_multiplier"))
+	var preferred_type := str(component.call("get_preferred_node_type"))
+	var target_multiplier := float(component.call("get_non_preferred_multiplier"))
 	worker_targets[target_id] = {
 		"kind": "component",
 		"preferred_type": preferred_type,
@@ -718,7 +709,7 @@ func can_assign_to_component(component: Node) -> bool:
 		return false
 	if not bool(component.call("is_connected_to_player_node")):
 		return false
-	if component.has_method("allows_worker_assignment") and not bool(component.call("allows_worker_assignment")):
+	if not bool(component.call("allows_worker_assignment")):
 		return false
 	var target_id := str(component.call("get_worker_target_id"))
 	var required_power := float(component.get("required_power"))
@@ -833,8 +824,6 @@ func get_node_type_label(node_type: String) -> String:
 
 
 func report_node_controlled(node: Node) -> void:
-	if not node.has_method("get_mind_entry_data"):
-		return
 	var data: Dictionary = node.call("get_mind_entry_data")
 	_register_and_unlock_runtime_mind_entry(data)
 
@@ -842,11 +831,11 @@ func report_node_controlled(node: Node) -> void:
 func report_component_controlled(component: Node) -> void:
 	# Track ADI components for food system
 	var type_id: Variant = component.get("component_type_id")
-	if type_id != null and str(type_id) == "adipose_tissue":
+	if str(type_id) == "adipose_tissue":
 		if not _owned_adi_components.has(component):
 			_owned_adi_components.append(component)
 	
-	if type_id != null and _component_mind_entry_defs.has(str(type_id)):
+	if _component_mind_entry_defs.has(str(type_id)):
 		on_component_captured(str(type_id))
 		return
 	var data: Dictionary = component.call("get_mind_entry_data")
@@ -867,8 +856,7 @@ func calculate_total_food_from_adipose() -> float:
 	"""Calculate total food as sum of glucose in all owned ADIs."""
 	var total := 0.0
 	for adi in _owned_adi_components:
-		if adi != null and adi.has_method("get_current_glucose"):
-			total += float(adi.call("get_current_glucose"))
+		total += float(adi.call("get_current_glucose"))
 	return total
 
 
@@ -879,20 +867,16 @@ func _distribute_glucose_production(amount: float, _source: Node) -> void:
 	
 	var total_charge_rate := 0.0
 	for adi in _owned_adi_components:
-		if adi != null and adi.has_method("get_charge_rate"):
-			total_charge_rate += float(adi.call("get_charge_rate"))
+		total_charge_rate += float(adi.call("get_charge_rate"))
 	
 	if total_charge_rate <= 0.0:
 		return
 	
 	for adi in _owned_adi_components:
-		if adi == null or not adi.has_method("get_charge_rate"):
-			continue
 		var adi_charge_rate := float(adi.call("get_charge_rate"))
 		var proportion := adi_charge_rate / total_charge_rate
 		var adi_charge_amount := amount * proportion
-		if adi.has_method("charge_glucose"):
-			adi.call("charge_glucose", adi_charge_amount)
+		adi.call("charge_glucose", adi_charge_amount)
 
 
 func _register_and_unlock_runtime_mind_entry(data: Dictionary) -> void:
@@ -1017,6 +1001,7 @@ func get_component_memory_display(component_type_id: String) -> Dictionary:
 		return {}
 	return {
 		"state": int(state_def.get("state", current_state)),
+		"mind_entry_id": str(def.get("mind_entry_id", "component_%s" % component_type_id)),
 		"title": str(state_def.get("title", component_type_id)),
 		"text": _render_component_state_text(component_type_id, state_def.get("text_segments", [])),
 	}
@@ -1126,19 +1111,23 @@ func get_component_shape_data(component_type_id: String) -> Dictionary:
 	var def: Dictionary = _component_mind_entry_defs.get(component_type_id, {})
 	if def.is_empty():
 		return {}
-	var raw_verts: Array = def.get("polygon_verts", [])
-	if raw_verts.is_empty():
+	var scene_path := str(def.get("scene_path", "")).strip_edges()
+	if scene_path == "":
 		return {}
-	var verts := PackedVector2Array()
-	for pt in raw_verts:
-		var arr: Array = pt
-		verts.append(Vector2(float(arr[0]), float(arr[1])))
-	var fill_raw: Array = def.get("fill_color", [0.26, 0.55, 0.28, 0.58])
-	var outline_raw: Array = def.get("outline_color", [1.0, 1.0, 1.0, 0.95])
+	var packed := load(scene_path) as PackedScene
+	if packed == null:
+		return {}
+	var instance := packed.instantiate() as Node2D
+	var polygon := instance.get_node("Polygon") as Polygon2D
+	var outline := instance.get_node("Outline") as Line2D
+	var verts: PackedVector2Array = polygon.polygon
+	var fill_color: Color = polygon.color
+	var outline_color: Color = outline.default_color
+	instance.free()
 	return {
 		"verts": verts,
-		"fill_color": Color(float(fill_raw[0]), float(fill_raw[1]), float(fill_raw[2]), float(fill_raw[3])),
-		"outline_color": Color(float(outline_raw[0]), float(outline_raw[1]), float(outline_raw[2]), float(outline_raw[3])),
+		"fill_color": fill_color,
+		"outline_color": outline_color,
 	}
 
 

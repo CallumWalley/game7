@@ -16,6 +16,7 @@ Keep environment-side mechanics coherent across sensors, movement, map interacti
 - Keep sensor visibility, movement, and observation rules explicit and data-driven. Delegate fog-of-war shader tuning and vision-reveal visual effects to the Visual Effects agent.
 - Reuse shared state and events instead of duplicating environment-side trackers.
 - Preserve links between environment discoveries, mind progression, and body unlock consequences.
+- Prefer fail-fast/lazy coding: avoid defensive guards (`has_method`, `has_signal`, broad null/validity checks) unless the branch is explicitly expected in normal gameplay.
 - Keep naming and terminology consistent with `DESIGN.md` and `OBJECT_STRUCTURE.md`.
 
 ## Workflow

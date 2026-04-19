@@ -42,9 +42,3 @@ func get_signal_clarity_per_cycle() -> float:
 	return signal_clarity_per_cycle
 
 
-func get_mind_entry_data() -> Dictionary:
-	return {
-		"id": "component_membranous_labyrinth",
-		"title": "Membranous Labyrinth",
-		"text": "A fluid-filled sensory organ that processes spatial and directional signals.",
-	}

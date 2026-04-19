@@ -81,9 +81,3 @@ func get_food_output_per_cycle() -> float:
 	return get_glucose_production_per_cycle()
 
 
-func get_mind_entry_data() -> Dictionary:
-	return {
-		"id": "component_photosynthetic_tissue",
-		"title": "Photosynthetic Tissue",
-		"text": "A metabolically active tissue layer that converts ambient radiation into glucose, charging connected adipose reserves.",
-	}

@@ -10,9 +10,11 @@ script = ExtResource("1_ml")
 script = ExtResource("2_sync")
 
 [node name="Polygon" type="Polygon2D" parent="."]
+color = Color(0.22, 0.52, 0.78, 0.6)
 polygon = PackedVector2Array(-62, -18, -18, -54, 36, -46, 66, -8, 54, 38, 6, 50, -40, 30)
 
 [node name="Outline" type="Line2D" parent="."]
+default_color = Color(1, 1, 1, 0.95)
 points = PackedVector2Array(-62, -18, -18, -54, 36, -46, 66, -8, 54, 38, 6, 50, -40, 30, -62, -18)
 
 [node name="HoverArea" type="Area2D" parent="."]

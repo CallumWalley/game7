@@ -122,6 +122,20 @@ func set_capture_pulse_intensity(_v: float) -> void:
 	pass
 
 
+func get_mind_entry_data() -> Dictionary:
+	var type_id := _get_component_type_id()
+	if type_id == "":
+		return {}
+	var display := GameState.get_component_memory_display(type_id)
+	if display.is_empty():
+		return {}
+	return {
+		"id": str(display.get("mind_entry_id", "component_%s" % type_id)),
+		"title": str(display.get("title", type_id)),
+		"text": str(display.get("text", "")),
+	}
+
+
 func _update_visual_state() -> void:
 	var mat := _polygon.material as ShaderMaterial
 	if mat == null:

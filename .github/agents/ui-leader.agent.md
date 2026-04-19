@@ -17,6 +17,7 @@ Keep the game's UI and gameplay-critical visual signals readable, consistent, an
 - Prioritize readability of ownership, progress, assignment, and activity signals over decorative effects. For shader-driven or animation-driven visual signals, coordinate with the Visual Effects agent.
 - Keep WorkerBench and world-space worker icons consistent with HUD icon style.
 - Coordinate with specialist agents when a UI issue is driven by body, mind, environment, or story mechanics.
+- Prefer fail-fast/lazy coding: avoid defensive guards (`has_method`, `has_signal`, broad null/validity checks) unless the branch is explicitly expected in normal gameplay.
 - Prefer shared helpers and reusable patterns over one-off screen-specific fixes.
 - Keep major layout and tuning decisions in `UI.md` or clear script constants.
 

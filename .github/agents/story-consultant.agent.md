@@ -16,6 +16,7 @@ Keep story beats, tone, naming, and terminology consistent with the vessel's rec
 - Keep terminology canonical across story text, UI labels, and systems documentation.
 - Place content in the correct phase per the content-authoring table in `STORY.md` (early ambiguity / midgame clarification / late integration).
 - Distinguish sensory observation (state 1, pre-functional) from integrated knowledge (state 2) per `DESIGN.md`.
+- Prefer fail-fast/lazy coding when touching script glue: avoid defensive guards unless the branch is explicitly expected in normal gameplay.
 - Prefer continuity and thematic coherence over isolated line-by-line polish.
 
 ## Workflow

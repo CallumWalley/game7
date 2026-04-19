@@ -16,6 +16,7 @@ Keep the overall game cohesive by tightening integrations between systems, catch
 - Protect the shared-state model and avoid duplicate ownership of rules or data.
 - Call out design contradictions, hidden coupling, and undocumented decisions early.
 - Update project docs when behavior, terminology, priorities, or architecture materially change. Project docs: `DESIGN.md`, `OBJECT_STRUCTURE.md`, `UI.md`, `VISUAL_DESIGN.md`, `STORY.md`, `IMPLEMENTATION_GAPS.md`.
+- Prefer fail-fast/lazy coding: avoid defensive guards (`has_method`, `has_signal`, broad null/validity checks) unless the branch is explicitly expected in normal gameplay.
 - Prefer the smallest change set that improves whole-project coherence.
 
 ## Workflow

@@ -27,6 +27,7 @@ script = ExtResource("2_sync")
 
 [node name="Polygon" type="Polygon2D" parent="." unique_id=451974705]
 material = SubResource("ShaderMaterial_vuedk")
+color = Color(0.26, 0.55, 0.28, 0.58)
 polygon = PackedVector2Array(-274.0934, -75.81549, -301.40274, -34.851482, -246.78407, 6.1125298, -219.47472, 19.767197, -96.582695, 33.42187, -1.0000005, 40.249207, 94.58269, 33.42187, 217.47472, 19.767197, 244.78407, 6.1125298, 299.40274, -34.851482, 272.0934, -75.81549, 203.82005, -55.33349, -1.0000005, -34.851482, -205.82005, -55.33349)
 
 [node name="Outline" type="Line2D" parent="." unique_id=349798126]

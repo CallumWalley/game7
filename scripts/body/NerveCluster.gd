@@ -55,7 +55,7 @@ func _animate_visuals(delta: float) -> void:
 	super._animate_visuals(delta)
 	if _base_polygon.is_empty():
 		return
-	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	var glucose_val := _glucose.current_glucose
 	var fed_actual := _glucose_factor(glucose_val)
 	var wobble_factor := fed_actual
 	if not is_enabled:
@@ -74,7 +74,7 @@ func _animate_visuals(delta: float) -> void:
 
 
 func get_food_request_units() -> float:
-	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	var glucose_val := _glucose.current_glucose
 	var effective_glucose := glucose_val
 	if not is_enabled and not is_in_coma():
 		effective_glucose = GameState.manual_disabled_request_glucose_equivalent
@@ -102,13 +102,12 @@ func apply_food_result(_request_units: float, _allocated_units: float, glucose_d
 
 
 func get_hidden_power() -> float:
-	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
+	var glucose_val := _glucose.current_glucose
 	return remap(clampf(glucose_val, GameState.coma_glucose_threshold, GameState.power_full_glucose), GameState.coma_glucose_threshold, GameState.power_full_glucose, 0.0, 1.0)
 
 
 func is_in_coma() -> bool:
-	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
-	return glucose_val < GameState.coma_glucose_threshold
+	return _glucose.current_glucose < GameState.coma_glucose_threshold
 
 
 func can_player_enable() -> bool:
@@ -123,13 +122,11 @@ func _delta_if_fully_fed(request_units: float) -> float:
 
 
 func _get_status_condition_data() -> Dictionary:
-	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
-	return {"glucose": int(round(glucose_val))}
+	return {"glucose": int(round(_glucose.current_glucose))}
 
 
 func _get_visual_energy_factor() -> float:
-	var glucose_val := _glucose.current_glucose if _glucose != null else 50.0
-	var hue_glucose := glucose_val if is_enabled else 30.0
+	var hue_glucose := _glucose.current_glucose if is_enabled else 30.0
 	return _glucose_factor(hue_glucose)
 
 

@@ -56,24 +56,16 @@ func _ready() -> void:
 	_overlay.move_child(_worker_bench_layer, 1)
 	for child in _get_all_clusters():
 		_assign_concept_name_if_needed(child)
-		if child.has_signal("hovered") and child.has_signal("unhovered"):
-			child.hovered.connect(_on_cluster_hovered)
-			child.unhovered.connect(_on_cluster_unhovered)
-			if child.has_signal("clicked"):
-				child.clicked.connect(_on_cluster_clicked)
-			if child.has_signal("glucose_changed"):
-				child.glucose_changed.connect(func(_v: int) -> void: _on_cluster_data_changed(child))
-			if child.has_signal("status_changed"):
-				child.status_changed.connect(func(v: String) -> void: _on_cluster_status_changed(child, v))
-			if child.has_signal("ownership_changed"):
-				child.ownership_changed.connect(func(_old_entity: int, _new_entity: int) -> void: _on_cluster_ownership_changed(child))
+		child.hovered.connect(_on_cluster_hovered)
+		child.unhovered.connect(_on_cluster_unhovered)
+		child.clicked.connect(_on_cluster_clicked)
+		child.glucose_changed.connect(func(_v: int) -> void: _on_cluster_data_changed(child))
+		child.status_changed.connect(func(v: String) -> void: _on_cluster_status_changed(child, v))
+		child.ownership_changed.connect(func(_old_entity: int, _new_entity: int) -> void: _on_cluster_ownership_changed(child))
 	for component in _get_all_components():
-		if component.has_signal("clicked"):
-			component.clicked.connect(_on_component_clicked)
-		if component.has_signal("hovered"):
-			component.hovered.connect(_on_component_hovered)
-		if component.has_signal("unhovered"):
-			component.unhovered.connect(_on_component_unhovered)
+		component.clicked.connect(_on_component_clicked)
+		component.hovered.connect(_on_component_hovered)
+		component.unhovered.connect(_on_component_unhovered)
 	_refresh_key()
 
 
@@ -197,7 +189,7 @@ func _on_component_clicked(component: Node, button_index: int) -> void:
 
 
 func _update_info() -> void:
-	if not is_instance_valid(_hovered_cluster) and not is_instance_valid(_hovered_component):
+	if _hovered_cluster == null and _hovered_component == null:
 		if _hover_card_hide_timer < 0.0:
 			_hide_card(_hovered_card)
 		return
@@ -236,13 +228,13 @@ func _collect_components_recursive(node: Node, result: Array) -> void:
 
 
 func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
-	if not is_instance_valid(cluster):
+	if cluster == null:
 		_hide_card(card)
 		return
 	var emotion_txt := str(cluster.get("status")).strip_edges()
 	if emotion_txt == "":
 		emotion_txt = "unknown"
-	var memory_data: Dictionary = cluster.call("get_mind_entry_data") if cluster.has_method("get_mind_entry_data") else {}
+	var memory_data: Dictionary = cluster.call("get_mind_entry_data")
 	var memory_id := str(memory_data.get("id", "")).strip_edges()
 	var memory_title := str(memory_data.get("title", "")).strip_edges()
 	var memory_text := str(memory_data.get("text", "")).strip_edges()
@@ -272,8 +264,7 @@ func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
 			var glucose_value := float(cluster.get("glucose"))
 			var power_value := 0.0
 			var resistance_value := float(cluster.get("resistance"))
-			if cluster.has_method("get_hidden_power"):
-				power_value = float(cluster.call("get_hidden_power"))
+			power_value = float(cluster.call("get_hidden_power"))
 			details += "\nGlucose: %d\nPower: %.2f\nResistance: %.2f" % [int(round(glucose_value)), power_value, resistance_value]
 	else:
 		details = "Status: %s\nUnderstanding incomplete." % emotion_txt
@@ -285,7 +276,7 @@ func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
 
 
 func _set_component_card_content(card: HoverInfoCard, component: Node) -> void:
-	if not is_instance_valid(component):
+	if component == null:
 		_hide_card(card)
 		return
 	var component_type_id := str(component.get("component_type_id"))
@@ -319,7 +310,7 @@ func _set_component_card_content(card: HoverInfoCard, component: Node) -> void:
 
 
 func _assign_concept_name_if_needed(cluster: Node) -> void:
-	if not is_instance_valid(cluster):
+	if cluster == null:
 		return
 	if str(cluster.get("concept_name")) != "":
 		return
@@ -335,9 +326,9 @@ func _update_cards_position() -> void:
 
 
 func _refresh_cards_content() -> void:
-	if is_instance_valid(_hovered_cluster):
+	if _hovered_cluster != null:
 		_set_card_content(_hovered_card, _hovered_cluster)
-	elif is_instance_valid(_hovered_component):
+	elif _hovered_component != null:
 		_set_component_card_content(_hovered_card, _hovered_component)
 	else:
 		_hide_card(_hovered_card)
@@ -350,7 +341,7 @@ func _on_cluster_data_changed(cluster: Node) -> void:
 
 func _on_cluster_status_changed(cluster: Node, status_text: String) -> void:
 	_on_cluster_data_changed(cluster)
-	if not is_instance_valid(cluster):
+	if cluster == null:
 		return
 	if status_text.strip_edges() == "":
 		return
@@ -363,7 +354,7 @@ func _on_cluster_status_changed(cluster: Node, status_text: String) -> void:
 		_suppress_status_popup_once.erase(key)
 		return
 	# Suppress while not in player's vision
-	if cluster.has_method("is_visible_to_player") and not bool(cluster.call("is_visible_to_player")):
+	if not bool(cluster.call("is_visible_to_player")):
 		return
 	# Suppress the very first status assignment (node just becoming known/visible)
 	if old_status == "":
@@ -381,7 +372,7 @@ func _on_cluster_status_changed(cluster: Node, status_text: String) -> void:
 
 
 func _on_cluster_ownership_changed(cluster: Node) -> void:
-	if not is_instance_valid(cluster):
+	if cluster == null:
 		return
 	_suppress_status_popup_once[cluster.get_instance_id()] = true
 
@@ -584,9 +575,7 @@ func _update_vision_mask() -> void:
 	var centers_secondary: Array[Vector2] = []
 	for cluster in _get_all_clusters():
 		var is_player_owned := bool(cluster.call("is_player_owned"))
-		var cluster_is_visible := true
-		if cluster.has_method("is_visible_to_player"):
-			cluster_is_visible = bool(cluster.call("is_visible_to_player"))
+		var cluster_is_visible := bool(cluster.call("is_visible_to_player"))
 		if is_player_owned:
 			if centers.size() < MAX_VISION_CENTERS:
 				centers.append(_world_to_overlay(cluster.global_position))

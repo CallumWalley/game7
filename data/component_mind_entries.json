@@ -2,9 +2,7 @@
   {
     "component_type_id": "photosynthetic_tissue",
     "mind_entry_id": "component_photosynthetic_tissue",
-    "polygon_verts": [[-76, -48], [68, -54], [84, 34], [-60, 58]],
-    "fill_color": [0.26, 0.55, 0.28, 0.58],
-    "outline_color": [1.0, 1.0, 1.0, 0.95],
+    "scene_path": "res://scenes/body/PhotosyntheticTissue.tscn",
     "states": [
       {
         "state": 1,
@@ -41,9 +39,7 @@
   {
     "component_type_id": "membranous_labyrinth",
     "mind_entry_id": "component_membranous_labyrinth",
-    "polygon_verts": [[-62, -18], [-18, -54], [36, -46], [66, -8], [54, 38], [6, 50], [-40, 30]],
-    "fill_color": [0.22, 0.52, 0.78, 0.60],
-    "outline_color": [1.0, 1.0, 1.0, 0.95],
+    "scene_path": "res://scenes/body/MembranousLabyrinth.tscn",
     "states": [
       {
         "state": 1,
@@ -80,9 +76,7 @@
   {
     "component_type_id": "adipose_tissue",
     "mind_entry_id": "component_adipose_tissue",
-    "polygon_verts": [[-52, -22], [-14, -58], [34, -56], [66, -16], [64, 28], [22, 60], [-28, 54], [-60, 14]],
-    "fill_color": [0.78, 0.60, 0.18, 0.60],
-    "outline_color": [1.0, 1.0, 1.0, 0.95],
+    "scene_path": "res://scenes/body/AdiposeTissue.tscn",
     "states": [
       {
         "state": 1,
