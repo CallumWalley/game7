@@ -22,11 +22,11 @@ var _acceleration_history: Array[Vector2] = []
 var _angular_history: Array[float] = []
 
 
-func set_motion_state(angular_velocity: float, linear_acceleration: Vector2, position: Vector2 = Vector2.ZERO, rotation: float = 0.0) -> void:
+func set_motion_state(angular_velocity: float, linear_acceleration: Vector2, world_position: Vector2 = Vector2.ZERO, world_rotation: float = 0.0) -> void:
 	_angular_velocity = angular_velocity
 	_linear_acceleration = linear_acceleration
-	_position = position
-	_rotation = rotation
+	_position = world_position
+	_rotation = world_rotation
 	_push_history_sample(angular_velocity, linear_acceleration)
 	queue_redraw()
 

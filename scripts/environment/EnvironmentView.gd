@@ -24,13 +24,12 @@ const SENSOR_LABELS := {
 @export var g_force_rotation_scale: float = 0.22
 @export var g_force_linear_scale: float = 0.0028
 @export var g_force_smoothing: float = 6.0
-@export var g_force_pulse_speed_base: float = 1.8
-@export var g_force_pulse_speed_gain: float = 6.4
-@export var g_force_pulse_depth_base: float = 0.1
-@export var g_force_pulse_depth_gain: float = 0.34
 @export var thermal_edge_intensity: float = 0.9
 @export var thermal_strength_smoothing: float = 7.0
 @export var thermal_distance_falloff: float = 700.0
+@export var thermal_proximity_intensity_scale: float = 0.03
+@export var planet_thermal_signal_scale: float = 0.08
+@export var planet_thermal_min_signal: float = 0.02
 
 @onready var radio_toggle: CheckBox = $Root/Sidebar/Sensors/RadioToggle
 @onready var thermal_toggle: CheckBox = $Root/Sidebar/Sensors/ThermalToggle
@@ -54,7 +53,7 @@ var _enabled_sensor_filters: Dictionary = {}
 var _has_available_filters: bool = false
 var _sidebar_visible_by_player_state: bool = true
 var _g_force_intensity: float = 0.0
-var _g_force_pulse_time: float = 0.0
+var _thermal_intensity: float = 0.0
 var _thermal_slots: Array[Vector4] = [
 	Vector4.ZERO,
 	Vector4.ZERO,
@@ -68,6 +67,8 @@ signal content_visibility_changed(has_content: bool)
 
 
 func _ready() -> void:
+	camera.ignore_rotation = false
+	camera.make_current()
 	for sensor_id in SENSOR_IDS:
 		_get_sensor_button(sensor_id).toggled.connect(_on_sensor_toggled.bind(sensor_id))
 	GameState.state_changed.connect(_refresh)
@@ -208,8 +209,6 @@ func _update_g_force_overlay(state: Dictionary, delta: float) -> void:
 	if not _is_sensor_available("acceleration1") or not _is_sensor_enabled("acceleration1"):
 		_g_force_intensity = lerpf(_g_force_intensity, 0.0, 1.0 - exp(-g_force_smoothing * delta))
 		shader_material.set_shader_parameter("intensity", _g_force_intensity)
-		shader_material.set_shader_parameter("pulse_time", _g_force_pulse_time)
-		shader_material.set_shader_parameter("pulse_depth", g_force_pulse_depth_base)
 		return
 
 	var angular_speed := absf(float(state.get("angular_velocity", 0.0)))
@@ -221,17 +220,16 @@ angular_speed * g_force_rotation_scale + linear_accel * g_force_linear_scale,
 )
 	var lerp_factor := 1.0 - exp(-g_force_smoothing * delta)
 	_g_force_intensity = lerpf(_g_force_intensity, target_intensity, lerp_factor)
-	_g_force_pulse_time += delta * (g_force_pulse_speed_base + _g_force_intensity * g_force_pulse_speed_gain)
 
 	shader_material.set_shader_parameter("intensity", _g_force_intensity)
-	shader_material.set_shader_parameter("pulse_time", _g_force_pulse_time)
-	shader_material.set_shader_parameter("pulse_depth", g_force_pulse_depth_base + _g_force_intensity * g_force_pulse_depth_gain)
 
 
 func _update_thermal_overlay(state: Dictionary, delta: float) -> void:
-	var material := thermal_overlay.material as ShaderMaterial
+	var thermal_material := thermal_overlay.material as ShaderMaterial
+	var thermal_lerp_factor := 1.0 - exp(-thermal_strength_smoothing * delta)
 	if not _is_sensor_available("thermal") or not _is_sensor_enabled("thermal"):
-		material.set_shader_parameter("intensity", 0.0)
+		_thermal_intensity = lerpf(_thermal_intensity, 0.0, thermal_lerp_factor)
+		thermal_material.set_shader_parameter("intensity", _thermal_intensity)
 		return
 
 	var player_position: Vector2 = state.get("position", Vector2.ZERO)
@@ -245,6 +243,8 @@ func _update_thermal_overlay(state: Dictionary, delta: float) -> void:
 			continue
 		var observability_profile: Dictionary = obj_data.get("observability_profile", {})
 		var thermal_signal := clampf(float(observability_profile.get("thermal", 0.0)), 0.0, 1.0)
+		if kind == "planet":
+			thermal_signal = maxf(thermal_signal * planet_thermal_signal_scale, planet_thermal_min_signal)
 		if thermal_signal <= 0.0:
 			continue
 		var obj_position := _to_vec2(obj_data.get("map_position", [0.0, 0.0]))
@@ -252,19 +252,22 @@ func _update_thermal_overlay(state: Dictionary, delta: float) -> void:
 		var distance := maxf(to_source.length(), 1.0)
 		var direction := to_source / distance
 		var rel_direction := direction.rotated(-player_rotation)
-		var size := float(THERMAL_SOURCE_SIZE_BY_KIND.get(kind, 14.0))
+		var source_size := float(THERMAL_SOURCE_SIZE_BY_KIND.get(kind, 14.0))
 		var distance_gain := 1.0 / (1.0 + distance / thermal_distance_falloff)
 		candidates.append({
 "dir": rel_direction,
-"strength": thermal_signal * size * distance_gain,
+"strength": thermal_signal * source_size * distance_gain,
 })
 
 	if candidates.is_empty():
-		material.set_shader_parameter("intensity", 0.0)
+		_thermal_intensity = lerpf(_thermal_intensity, 0.0, thermal_lerp_factor)
+		thermal_material.set_shader_parameter("intensity", _thermal_intensity)
 		return
 
 	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a.get("strength", 0.0)) > float(b.get("strength", 0.0)))
 	var peak_strength := float(candidates[0].get("strength", 1.0))
+	var target_intensity := clampf(peak_strength * thermal_proximity_intensity_scale, 0.0, 1.0) * thermal_edge_intensity
+	_thermal_intensity = lerpf(_thermal_intensity, target_intensity, thermal_lerp_factor)
 	for i in THERMAL_MAX_SOURCES:
 		var target_slot := Vector4.ZERO
 		if i < candidates.size():
@@ -272,11 +275,10 @@ func _update_thermal_overlay(state: Dictionary, delta: float) -> void:
 			var dir: Vector2 = source.get("dir", Vector2.RIGHT)
 			var normalized_strength := clampf(float(source.get("strength", 0.0)) / maxf(peak_strength, 0.0001), 0.0, 1.0)
 			target_slot = Vector4(dir.x, dir.y, normalized_strength, 0.0)
-		var lerp_factor := 1.0 - exp(-thermal_strength_smoothing * delta)
-		_thermal_slots[i] = _thermal_slots[i].lerp(target_slot, lerp_factor)
-		material.set_shader_parameter("source_%d" % i, _thermal_slots[i])
+		_thermal_slots[i] = _thermal_slots[i].lerp(target_slot, thermal_lerp_factor)
+		thermal_material.set_shader_parameter("source_%d" % i, _thermal_slots[i])
 
-	material.set_shader_parameter("intensity", thermal_edge_intensity)
+	thermal_material.set_shader_parameter("intensity", _thermal_intensity)
 
 
 func _update_acceleration_display(state: Dictionary) -> void:
@@ -284,9 +286,9 @@ func _update_acceleration_display(state: Dictionary) -> void:
 		return
 	var angular_velocity := float(state.get("angular_velocity", 0.0))
 	var linear_acceleration: Vector2 = state.get("linear_acceleration", Vector2.ZERO)
-	var position: Vector2 = state.get("position", Vector2.ZERO)
-	var rotation := float(state.get("rotation", 0.0))
-	acceleration_display.call("set_motion_state", angular_velocity, linear_acceleration, position, rotation)
+	var telemetry_position: Vector2 = state.get("position", Vector2.ZERO)
+	var telemetry_rotation := float(state.get("rotation", 0.0))
+	acceleration_display.call("set_motion_state", angular_velocity, linear_acceleration, telemetry_position, telemetry_rotation)
 
 
 func _is_sensor_available(sensor_id: String) -> bool:
