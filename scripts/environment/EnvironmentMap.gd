@@ -4,6 +4,7 @@ const SYSTEM_ID := "system0"
 const WORLD_BOUNDS := Rect2(Vector2(-1400.0, -900.0), Vector2(2800.0, 1800.0))
 const AUTO_OBSERVE_RADIUS: float = 150.0
 const ORBIT_SEGMENTS: int = 80
+const THERMAL_DRAW_TIER_REQUIRED: int = 2
 const SENSOR_FILTER_COLORS := {
 	"thermal": Color(0.96, 0.82, 0.56, 1.0),
 	"radio": Color(0.48, 0.92, 1.0, 1.0),
@@ -33,6 +34,7 @@ var _has_sun_position: bool = false
 @onready var orbits_layer: Node2D = $OrbitsLayer
 @onready var objects_layer: Node2D = $ObjectsLayer
 @onready var player_marker: Polygon2D = $PlayerMarker
+@onready var grid_draw: Node2D = $GridDraw
 
 
 func _ready() -> void:
@@ -101,6 +103,11 @@ func _build_system_objects() -> void:
 	_sun_position = sun_position
 	_has_sun_position = has_sun
 
+	var draw_enabled := GameState.get_effective_sensor_tier("thermal") >= THERMAL_DRAW_TIER_REQUIRED
+	_set_draw_layers_visible(draw_enabled)
+	if not draw_enabled:
+		return
+
 	for obj_data in system_objects:
 		var kind := str(obj_data.get("kind", ""))
 		var pos := _to_vec2(obj_data.get("map_position", [0.0, 0.0]))
@@ -112,6 +119,12 @@ func _build_system_objects() -> void:
 		if not _passes_enabled_filters(obj_data):
 			continue
 		objects_layer.add_child(_build_object_visual(obj_data, pos))
+
+
+func _set_draw_layers_visible(is_draw_visible: bool) -> void:
+	grid_draw.visible = is_draw_visible
+	orbits_layer.visible = is_draw_visible
+	objects_layer.visible = is_draw_visible
 
 
 func _get_progression_visible_objects() -> Array[Dictionary]:
@@ -132,35 +145,35 @@ func _build_object_visual(obj_data: Dictionary, pos: Vector2) -> Node2D:
 	var kind := str(obj_data.get("kind", ""))
 	var signal_strength := _get_combined_signal_strength(obj_data)
 	var filter_tint := _get_filter_tint()
-	var size := 14.0
+	var object_size := 14.0
 	var color := Color(0.75, 0.8, 0.9, 0.85)
 	match kind:
 		"sun":
-			size = 60.0
+			object_size = 60.0
 			color = Color(0.98, 0.78, 0.32, 0.96)
 		"planet":
-			size = 26.0
+			object_size = 26.0
 			color = Color(0.52, 0.7, 0.9, 0.88)
 		"rock_field":
-			size = 20.0
+			object_size = 20.0
 			color = Color(0.58, 0.62, 0.68, 0.75)
 		"rock":
-			size = 10.0
+			object_size = 10.0
 			color = Color(0.6, 0.63, 0.7, 0.7)
 		"curiosity":
-			size = 16.0
+			object_size = 16.0
 			color = Color(0.72, 0.9, 0.96, 0.9)
 	color = color.lerp(filter_tint, 0.2 + signal_strength * 0.45)
 	color.a *= 0.45 + signal_strength * 0.55
 
 	var body := Polygon2D.new()
-	body.polygon = _regular_polygon(size, 16)
+	body.polygon = _regular_polygon(object_size, 16)
 	body.color = color
 	root.add_child(body)
 
 	if kind == "sun":
 		var glow := Polygon2D.new()
-		glow.polygon = _regular_polygon(size * 1.45, 18)
+		glow.polygon = _regular_polygon(object_size * 1.45, 18)
 		glow.color = Color(color.r, color.g, color.b, 0.18)
 		root.add_child(glow)
 
@@ -169,16 +182,16 @@ func _build_object_visual(obj_data: Dictionary, pos: Vector2) -> Node2D:
 		ring.width = 2.0
 		ring.default_color = Color(color.r, color.g, color.b, 0.48)
 		ring.points = PackedVector2Array([
-			Vector2(-size * 1.5, 0.0),
-			Vector2(0.0, -size * 0.35),
-			Vector2(size * 1.5, 0.0),
+			Vector2(-object_size * 1.5, 0.0),
+			Vector2(0.0, -object_size * 0.35),
+			Vector2(object_size * 1.5, 0.0),
 		])
 		ring.closed = false
 		root.add_child(ring)
 
 	if kind == "curiosity":
 		var halo := Polygon2D.new()
-		halo.polygon = _regular_polygon(size * 1.65, 5)
+		halo.polygon = _regular_polygon(object_size * 1.65, 5)
 		halo.color = Color(color.r, color.g, color.b, 0.22)
 		root.add_child(halo)
 

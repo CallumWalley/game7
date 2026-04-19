@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://xbq7bra0crfp"]
 
-[ext_resource type="Script" uid="uid://8sq6ydkvluyw" path="res://scripts/ui/Main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scripts/ui/Main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/mind/MindView.tscn" id="2_mind"]
 [ext_resource type="PackedScene" path="res://scenes/body/BodyView.tscn" id="3_body"]
 [ext_resource type="PackedScene" path="res://scenes/environment/EnvironmentView.tscn" id="4_env"]

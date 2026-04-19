@@ -68,9 +68,9 @@ func is_connected_to_source_node() -> bool:
 	# BFS through active bidirectional graph from all seeds
 	var visited: Dictionary = {}
 	var queue: Array = []
-	for seed in seeds:
-		visited[seed] = true
-		queue.append(seed)
+	for source_seed in seeds:
+		visited[source_seed] = true
+		queue.append(source_seed)
 	while not queue.is_empty():
 		var current: Node = queue.pop_front()
 		# Forward edges
@@ -90,7 +90,7 @@ func is_connected_to_source_node() -> bool:
 					break
 	# ThoughtNode: self must be in visited set
 	if is_in_group("nerve_clusters"):
-		return visited.has(self)
+		return visited.has(self )
 	# Component: any directly-linked active ThoughtNode must be reachable
 	for neighbor in get_linked_body_objects():
 		if visited.has(neighbor):

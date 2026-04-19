@@ -1,17 +1,17 @@
 extends Control
 
-@onready var _mind_panel: Control    = $VBox/ContentArea/ViewStack/MindPanel
-@onready var _body_panel: Control    = $VBox/ContentArea/ViewStack/BodyPanel
-@onready var _env_panel: Control     = $VBox/ContentArea/ViewStack/EnvironmentPanel
-@onready var _mind_btn: Button       = $VBox/BottomBar/HBox/MindButton
-@onready var _body_btn: Button       = $VBox/BottomBar/HBox/BodyButton
-@onready var _env_btn: Button        = $VBox/BottomBar/HBox/EnvironmentButton
-@onready var cycle_label: Label      = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/CycleLabel
-@onready var resource_label: Label   = $VBox/TopBar/Margin/HBox/LeftZone/ResourceLabel
+@onready var _mind_panel: Control = $VBox/ContentArea/ViewStack/MindPanel
+@onready var _body_panel: Control = $VBox/ContentArea/ViewStack/BodyPanel
+@onready var _env_panel: Control = $VBox/ContentArea/ViewStack/EnvironmentPanel
+@onready var _mind_btn: Button = $VBox/BottomBar/HBox/MindButton
+@onready var _body_btn: Button = $VBox/BottomBar/HBox/BodyButton
+@onready var _env_btn: Button = $VBox/BottomBar/HBox/EnvironmentButton
+@onready var cycle_label: Label = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/CycleLabel
+@onready var resource_label: Label = $VBox/TopBar/Margin/HBox/LeftZone/ResourceLabel
 @onready var time_controls: HBoxContainer = $VBox/TopBar/Margin/HBox/RightZone/TimeControls
-@onready var pause_button: Button    = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/PauseButton
-@onready var next_button: Button     = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/NextButton
-@onready var speed_1_button: Button  = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/Speed1Button
+@onready var pause_button: Button = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/PauseButton
+@onready var next_button: Button = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/NextButton
+@onready var speed_1_button: Button = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/Speed1Button
 @onready var speed_10_button: Button = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/Speed10Button
 @onready var speed_100_button: Button = $VBox/TopBar/Margin/HBox/RightZone/TimeControls/Speed100Button
 @onready var neuron_group: HBoxContainer = $VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/NeuronGroup
@@ -47,8 +47,8 @@ const FOOD_BALANCE_NEUTRAL_COLOR: Color = Color(1.0, 1.0, 1.0, 1.0)
 
 func _ready() -> void:
 	_apply_tooltip_delay_from_settings()
-	_panels  = [_mind_panel, _body_panel, _env_panel]
-	_buttons = [_mind_btn,   _body_btn,   _env_btn]
+	_panels = [_mind_panel, _body_panel, _env_panel]
+	_buttons = [_mind_btn, _body_btn, _env_btn]
 	_configure_system_menu_card()
 	pause_button.toggled.connect(_set_paused)
 	next_button.pressed.connect(_step_once)
@@ -131,8 +131,8 @@ func _update_resource_label() -> void:
 	resource_label.visible = food_counter_visible
 
 
-func _update_resource_tooltip(is_visible: bool) -> void:
-	if not is_visible:
+func _update_resource_tooltip(should_show: bool) -> void:
+	if not should_show:
 		resource_label.tooltip_text = ""
 		return
 	var lines: Array[String] = []

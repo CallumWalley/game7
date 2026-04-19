@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ua15ewyomabc"]
 
-[ext_resource type="Script" uid="uid://dkddhkxoq5b6" path="res://scripts/body/BodyView.gd" id="1_body_script"]
+[ext_resource type="Script" path="res://scripts/body/BodyView.gd" id="1_body_script"]
 [ext_resource type="PackedScene" uid="uid://2h2yfhheywb" path="res://scenes/body/BodyMap.tscn" id="2_body_map"]
 [ext_resource type="PackedScene" path="res://scenes/common/HoverInfoCard.tscn" id="3_hover_card"]
 

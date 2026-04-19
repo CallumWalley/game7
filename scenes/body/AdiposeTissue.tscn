@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dtevcfa0gg1ww"]
 
-[ext_resource type="Script" uid="uid://blhbrtaifs50x" path="res://scripts/body/AdiposeTissue.gd" id="1_at"]
-[ext_resource type="Script" uid="uid://cblkvbgbhv16" path="res://scripts/body/tools/ComponentShapeSyncTool.gd" id="2_sync"]
-[ext_resource type="Shader" uid="uid://dn1cnhdejjdfa" path="res://shaders/node_fill.gdshader" id="3_dptaa"]
+[ext_resource type="Script" path="res://scripts/body/AdiposeTissue.gd" id="1_at"]
+[ext_resource type="Script" path="res://scripts/body/tools/ComponentShapeSyncTool.gd" id="2_sync"]
+[ext_resource type="Shader" path="res://shaders/node_fill.gdshader" id="3_dptaa"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_3375g"]
 shader = ExtResource("3_dptaa")

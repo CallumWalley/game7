@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://2h2yfhheywb"]
 
-[ext_resource type="Script" uid="uid://biqeyfqtdhsxj" path="res://scripts/body/BodyMap.gd" id="0_map_script"]
-[ext_resource type="Script" uid="uid://dywibu7ia12xk" path="res://scripts/body/GridDraw.gd" id="1_grid"]
-[ext_resource type="Script" uid="uid://brhmthpuvrdw" path="res://scripts/body/LinksLayer.gd" id="2_links"]
+[ext_resource type="Script" uid="uid://dem2me458k6gd" path="res://scripts/body/BodyMap.gd" id="0_map_script"]
+[ext_resource type="Script" uid="uid://d3t12jbegnpyc" path="res://scripts/body/GridDraw.gd" id="1_grid"]
+[ext_resource type="Script" uid="uid://8mld7jh1bn6g" path="res://scripts/body/LinksLayer.gd" id="2_links"]
 [ext_resource type="PackedScene" path="res://scenes/body/NerveCluster.tscn" id="3_cluster"]
 [ext_resource type="PackedScene" uid="uid://cw63bphk0dqc8" path="res://scenes/body/PhotosyntheticTissue.tscn" id="4_component"]
 [ext_resource type="PackedScene" uid="uid://dtevcfa0gg1ww" path="res://scenes/body/AdiposeTissue.tscn" id="6_nchxy"]
@@ -36,6 +36,7 @@ position = Vector2(-900, -190)
 [node name="PhotosyntheticTissueWest" parent="ClustersRoot/west" unique_id=1894247787 instance=ExtResource("4_component")]
 position = Vector2(-483, 667)
 rotation = 0.72431165
+direction = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterA4")])
 
 [node name="ClusterA4" parent="ClustersRoot/west" unique_id=880803771 instance=ExtResource("3_cluster")]
@@ -43,7 +44,6 @@ z_index = 2
 position = Vector2(-364.99997, 389)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
-is_source_node = null
 is_enabled = false
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../ClusterA8")])
 
@@ -52,7 +52,6 @@ z_index = 2
 position = Vector2(-264, 12.999996)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-is_source_node = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD2"), NodePath("../ClusterA8")])
 
 [node name="ClusterA8" parent="ClustersRoot/west" unique_id=1752173926 instance=ExtResource("3_cluster")]
@@ -60,7 +59,6 @@ z_index = 2
 position = Vector2(-511, 130.00002)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-is_source_node = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA10"), NodePath("../ClusterA4")])
 
 [node name="ClusterC" parent="ClustersRoot/west" unique_id=393521372 instance=ExtResource("3_cluster")]
@@ -68,7 +66,6 @@ z_index = 2
 position = Vector2(71, 300)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
-is_source_node = null
 resistance = -4.0
 linked_node_paths = Array[NodePath]([NodePath("../ClusterD"), NodePath("../ClusterD2"), NodePath("../../wake/clusterc_01")])
 
@@ -77,7 +74,6 @@ z_index = 2
 position = Vector2(-126, 439.99997)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-is_source_node = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterC")])
 
 [node name="ClusterD2" parent="ClustersRoot/west" unique_id=605298744 instance=ExtResource("3_cluster")]
@@ -85,7 +81,6 @@ z_index = 2
 position = Vector2(-145.00003, 257)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-is_source_node = null
 linked_node_paths = Array[NodePath]([NodePath("../ClusterA4"), NodePath("../ClusterA10"), NodePath("../ClusterC")])
 
 [node name="AdiposeTissue" parent="ClustersRoot/west" unique_id=683000752 instance=ExtResource("6_nchxy")]
@@ -114,6 +109,7 @@ linked_node_paths = Array[NodePath]([NodePath("../clustera8_01")])
 [node name="PhotosyntheticTissueWake" parent="ClustersRoot/wake" unique_id=150127034 instance=ExtResource("4_component")]
 position = Vector2(254, 636)
 rotation = -0.33161256
+direction = null
 linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01")])
 
 [node name="clustera4_01" parent="ClustersRoot/wake" unique_id=165029725 instance=ExtResource("3_cluster")]
@@ -121,7 +117,6 @@ z_index = 2
 position = Vector2(-34, 145)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.15345462, 0.16852528, 0.053834707, 0)
-is_source_node = null
 is_enabled = false
 resistance = 0.225
 linked_node_paths = Array[NodePath]([NodePath("../clusterd_01"), NodePath("../clustera8_01"), NodePath("../clusterc_01")])
@@ -131,7 +126,6 @@ z_index = 2
 position = Vector2(-58.99999, 281.99994)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.122332275, 0.0033776688, 0.06283789, 0)
-is_source_node = null
 resistance = 0.575
 linked_node_paths = Array[NodePath]([NodePath("../clusterd2_01"), NodePath("../clustera8_01"), NodePath("../clusterc_01")])
 
@@ -152,7 +146,6 @@ z_index = 2
 position = Vector2(-289, 162.00002)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.10049081, 0.08750229, 0.07226828, 0)
-is_source_node = null
 resistance = 1.335
 linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera4_01"), NodePath("../../west/ClusterC")])
 
@@ -161,7 +154,6 @@ z_index = 2
 position = Vector2(227, -10.000011)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-is_source_node = null
 resistance = 0.37
 linked_node_paths = Array[NodePath]([NodePath("../clustera4_01"), NodePath("../clustera8_01")])
 
@@ -170,7 +162,6 @@ z_index = 2
 position = Vector2(237.00002, 518)
 scale = Vector2(0.9114, 0.9114)
 node_tint = Color(0.022178419, 0.17859428, 0.08484856, 0)
-is_source_node = null
 resistance = 0.01
 linked_node_paths = Array[NodePath]([NodePath("../clustera10_01"), NodePath("../clustera8_01")])
 
