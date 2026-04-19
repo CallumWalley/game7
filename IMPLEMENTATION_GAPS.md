@@ -34,7 +34,7 @@ Track confirmed design/implementation drift, integration risks, and the smallest
 
 ### Environment map was static art — implemented first data-driven system map
 - Problem: Environment map visuals were authored as static polygons with no object-space data and no player-centric navigation model.
-- Fix: `data/environment_objects.json` now includes `system_id`, `kind`, `map_position`, `observability_profile` (`radio`, `heat`, `light`, `gamma`, `gravity`), and `is_observable`. `EnvironmentMap.gd` now builds `system0` objects from this data, owns player movement physics state, and publishes it to `EnvironmentView` for player-centered fixed-orientation camera behavior.
+- Fix: `data/environment_objects.json` now includes `system_id`, `kind`, `map_position`, `observability_profile` (`light_heat`, `radio`, `velocity`, `gamma`, `gravity`, `acceleration`), and `is_observable`. `EnvironmentMap.gd` now builds `system0` objects from this data, owns player movement physics state, and publishes it to `EnvironmentView` for player-centered fixed-orientation camera behavior.
 
 ## Current Gaps
 

@@ -127,7 +127,7 @@ Worker capacity consistency:
 - `ObservationSystem` is SSOT for environment object definitions (`data/environment_objects.json`) and sensor-gated observability.
 - `EnvironmentMap` (`scenes/environment/EnvironmentMap.tscn`, `scripts/environment/EnvironmentMap.gd`) builds only progression-visible `system0` objects from shared data, owns player movement state (`position`, `rotation`, `velocity`, `acceleration`), renders orbit lines for visible planets, and auto-observes nearby visible objects.
 - `EnvironmentView` camera uses player state each frame to keep a player-centered, fixed-orientation perspective while the sidebar exposes only unlocked sensor filters.
-- Canonical environment sensor channels are `radio`, `heat`, `light`, `gamma`, and `gravity`.
+- Canonical environment sensor channels are `light_heat`, `radio`, `velocity`, `gamma`, `gravity`, and `acceleration`.
 
 ## Shared UI helpers
 

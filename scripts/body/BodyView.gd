@@ -124,7 +124,7 @@ func _on_component_hovered(component) -> void:
 	_hovered_cluster = null
 	_hovered_component = component
 	_hover_card_hide_timer = -1.0
-	GameState.on_component_first_hovered(str(component.get("component_type_id")))
+	ProgressionSystem.report_component_first_hovered(str(component.get("component_type_id")))
 	_update_info()
 
 

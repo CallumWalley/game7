@@ -8,7 +8,6 @@ extends Control
 @onready var _env_btn: Button        = $VBox/BottomBar/HBox/EnvironmentButton
 @onready var cycle_label: Label      = $VBox/TopBar/Margin/HBox/CycleLabel
 @onready var resource_label: Label   = $VBox/TopBar/Margin/HBox/ResourceLabel
-@onready var system_menu: MenuButton = $VBox/TopBar/Margin/HBox/SystemMenu
 @onready var time_controls: HBoxContainer = $VBox/TopBar/Margin/HBox/TimeControls
 @onready var pause_button: Button    = $VBox/TopBar/Margin/HBox/TimeControls/PauseButton
 @onready var next_button: Button     = $VBox/TopBar/Margin/HBox/TimeControls/NextButton
@@ -24,6 +23,13 @@ extends Control
 @onready var mind_view: Control = $VBox/ContentArea/ViewStack/MindPanel
 @onready var debug_visibility_panel: CanvasLayer = $DebugVisibilityPanel
 @onready var settings_menu_window: Window = $SettingsMenu
+@onready var system_menu_card: Control = $SystemMenuCard
+@onready var menu_save_button: Button = $SystemMenuCard/Panel/Margin/VBox/MenuButtons/SaveButton
+@onready var menu_load_button: Button = $SystemMenuCard/Panel/Margin/VBox/MenuButtons/LoadButton
+@onready var menu_settings_button: Button = $SystemMenuCard/Panel/Margin/VBox/MenuButtons/SettingsButton
+@onready var menu_debug_button: Button = $SystemMenuCard/Panel/Margin/VBox/MenuButtons/DebugModeButton
+@onready var menu_quit_button: Button = $SystemMenuCard/Panel/Margin/VBox/MenuButtons/QuitButton
+@onready var menu_close_button: Button = $SystemMenuCard/Panel/Margin/VBox/TopRow/CloseButton
 
 var _panels: Array
 var _buttons: Array
@@ -32,17 +38,15 @@ var _is_paused: bool = false
 var _tick_size: int = 1
 var _time_accumulator: float = 0.0
 const REAL_SECONDS_PER_TICK: float = 1.0
-const MENU_ID_SAVE: int = 0
-const MENU_ID_LOAD: int = 1
-const MENU_ID_SETTINGS: int = 2
-const MENU_ID_DEBUG_MODE: int = 3
-const MENU_ID_QUIT: int = 4
+const FOOD_BALANCE_WARN_COLOR: Color = Color(1.0, 0.44, 0.40, 1.0)
+const FOOD_BALANCE_GOOD_COLOR: Color = Color(0.60, 0.95, 0.68, 1.0)
+const FOOD_BALANCE_NEUTRAL_COLOR: Color = Color(1.0, 1.0, 1.0, 1.0)
 
 
 func _ready() -> void:
 	_panels  = [_mind_panel, _body_panel, _env_panel]
 	_buttons = [_mind_btn,   _body_btn,   _env_btn]
-	_configure_menu()
+	_configure_system_menu_card()
 	pause_button.pressed.connect(_set_paused.bind(true))
 	next_button.pressed.connect(_step_once)
 	speed_1_button.pressed.connect(_set_speed.bind(1))
@@ -58,6 +62,9 @@ func _ready() -> void:
 	GameState.state_changed.connect(_update_cycle_label)
 	GameState.state_changed.connect(_update_resource_label)
 	GameState.state_changed.connect(_update_global_key)
+	_env_panel.content_visibility_changed.connect(
+		func(_has: bool) -> void: _update_env_tab_visibility()
+	)
 	
 	# Connect debug visibility manager
 	DebugVisibilityManager.visibility_changed.connect(_on_debug_visibility_changed)
@@ -77,6 +84,12 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel"):
+		_toggle_system_menu_card()
+		get_viewport().set_input_as_handled()
+		return
+	if system_menu_card.visible:
+		return
 	if event.is_action_pressed("next_tab"):
 		_switch_tab((_current_tab + 1) % _panels.size())
 	elif event.is_action_pressed("prev_tab"):
@@ -98,10 +111,18 @@ func _update_cycle_label() -> void:
 func _update_resource_label() -> void:
 	var food_counter_visible := ProgressionSystem.is_food_counter_visible()
 	if food_counter_visible:
-		resource_label.text = "Food %.1f | -%.2f/tick | Power %.2f" % [GameState.food, GameState.last_tick_food_consumed, GameState.last_tick_power_total]
+		var balance_per_tick := GameState.last_tick_food_output - GameState.last_tick_food_requested
+		resource_label.text = "Food %.1f | %+0.2f/tick" % [GameState.food, balance_per_tick]
+		if balance_per_tick < 0.0:
+			resource_label.modulate = FOOD_BALANCE_WARN_COLOR
+		elif balance_per_tick > 0.0:
+			resource_label.modulate = FOOD_BALANCE_GOOD_COLOR
+		else:
+			resource_label.modulate = FOOD_BALANCE_NEUTRAL_COLOR
 	else:
-		resource_label.text = "Power %.2f" % [GameState.last_tick_power_total]
-	resource_label.visible = true
+		resource_label.text = ""
+		resource_label.modulate = FOOD_BALANCE_NEUTRAL_COLOR
+	resource_label.visible = food_counter_visible
 
 
 func _update_global_key() -> void:
@@ -121,26 +142,49 @@ func _update_global_key() -> void:
 	quantum_count_label.text = "%d / %d" % [int(quantum.get("idle", 0)), int(quantum.get("total", 0))]
 
 
-func _configure_menu() -> void:
-	var popup := system_menu.get_popup()
-	popup.add_item("Save (placeholder)", MENU_ID_SAVE)
-	popup.add_item("Load (placeholder)", MENU_ID_LOAD)
-	popup.add_separator()
-	popup.add_item("Settings", MENU_ID_SETTINGS)
-	popup.add_separator()
-	popup.add_check_item("Enable debug mode (~)", MENU_ID_DEBUG_MODE)
-	popup.add_separator()
-	popup.add_item("Quit (placeholder)", MENU_ID_QUIT)
-	popup.id_pressed.connect(_on_menu_id_pressed)
+func _configure_system_menu_card() -> void:
+	system_menu_card.visible = false
+	menu_save_button.pressed.connect(func() -> void: print("Save placeholder"))
+	menu_load_button.pressed.connect(func() -> void: print("Load placeholder"))
+	menu_settings_button.pressed.connect(_open_settings_from_menu)
+	menu_debug_button.pressed.connect(_toggle_debug_mode)
+	menu_quit_button.pressed.connect(func() -> void: print("Quit placeholder"))
+	menu_close_button.pressed.connect(_close_system_menu_card)
+	settings_menu_window.close_requested.connect(_on_settings_window_closed)
 	_sync_debug_controls()
 
 
-func _on_menu_id_pressed(id: int) -> void:
-	if id == MENU_ID_SETTINGS:
-		settings_menu_window.popup_centered_ratio(0.72)
-	elif id == MENU_ID_DEBUG_MODE:
-		DebugVisibilityManager.toggle_debug_mode()
-		sync_to_debug_options()
+func _toggle_system_menu_card() -> void:
+	if system_menu_card.visible:
+		_close_system_menu_card()
+		return
+	_open_system_menu_card()
+
+
+func _open_system_menu_card() -> void:
+	system_menu_card.visible = true
+	_set_paused(true)
+	_sync_debug_controls()
+
+
+func _close_system_menu_card() -> void:
+	if settings_menu_window.visible:
+		settings_menu_window.hide()
+	system_menu_card.visible = false
+	_set_paused(false)
+
+
+func _open_settings_from_menu() -> void:
+	settings_menu_window.popup_centered_ratio(0.72)
+
+
+func _on_settings_window_closed() -> void:
+	settings_menu_window.hide()
+
+
+func _toggle_debug_mode() -> void:
+	DebugVisibilityManager.toggle_debug_mode()
+	sync_to_debug_options()
 
 
 func _set_paused(value: bool) -> void:
@@ -173,8 +217,7 @@ func _apply_initial_debug_visibility() -> void:
 	"""Apply initial visibility states from DebugVisibilityManager."""
 	_mind_btn.visible = DebugVisibilityManager.is_visible("mind_window")
 	_mind_btn.disabled = not DebugVisibilityManager.is_visible("mind_window")
-	_env_btn.visible = DebugVisibilityManager.is_visible("environment_window")
-	_env_btn.disabled = not DebugVisibilityManager.is_visible("environment_window")
+	_update_env_tab_visibility()
 	time_controls.visible = DebugVisibilityManager.is_visible("time_controls")
 	_update_timeline_visibility()
 	_switch_tab(_current_tab)
@@ -190,10 +233,7 @@ func _on_debug_visibility_changed(feature: String, feature_visible: bool) -> voi
 			if _current_tab == 0 and not feature_visible:
 				_switch_tab(1)
 		"environment_window":
-			_env_btn.visible = feature_visible
-			_env_btn.disabled = not feature_visible
-			if _current_tab == 2 and not feature_visible:
-				_switch_tab(1)
+			_update_env_tab_visibility()
 		"time_controls":
 			time_controls.visible = feature_visible
 		"timeline_bar":
@@ -209,6 +249,15 @@ func _validate_tab_buttons() -> void:
 	if _current_tab == 0 and not _mind_btn.visible:
 		_switch_tab(1)
 	elif _current_tab == 2 and not _env_btn.visible:
+		_switch_tab(1)
+
+
+func _update_env_tab_visibility() -> void:
+	var has_content: bool = _env_panel.get("_has_available_filters")
+	var visible := has_content and DebugVisibilityManager.is_visible("environment_window")
+	_env_btn.visible = visible
+	_env_btn.disabled = not visible
+	if _current_tab == 2 and not visible:
 		_switch_tab(1)
 
 
@@ -233,5 +282,6 @@ func sync_to_debug_options() -> void:
 
 func _sync_debug_controls() -> void:
 	debug_visibility_panel.visible = DebugVisibilityManager.is_debug_mode_enabled()
-	var popup := system_menu.get_popup()
-	popup.set_item_checked(popup.get_item_index(MENU_ID_DEBUG_MODE), DebugVisibilityManager.is_debug_mode_enabled())
+	menu_debug_button.toggle_mode = true
+	menu_debug_button.button_pressed = DebugVisibilityManager.is_debug_mode_enabled()
+	menu_debug_button.text = "Disable debug mode (~)" if menu_debug_button.button_pressed else "Enable debug mode (~)"

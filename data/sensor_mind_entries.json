@@ -1,0 +1,78 @@
+[
+  {
+    "id": "sensor_thermal",
+    "sensor_id": "thermal",
+    "states": [
+      {
+        "stage": 1,
+        "title": "Thermal-Optical Feed",
+        "text": "Thermal bands overlay the optical channel. Surface temperatures are legible. Stellar flux cross-references with tissue absorption data."
+      }
+    ]
+  },
+  {
+    "id": "sensor_radio",
+    "sensor_id": "radio",
+    "states": [
+      {
+        "stage": 1,
+        "title": "Radio Band Feed",
+        "text": "Electromagnetic input at radio frequencies is now resolved. Structured signals are detectable within background noise."
+      }
+    ]
+  },
+  {
+    "id": "sensor_velocity",
+    "sensor_id": "velocity",
+    "states": [
+      {
+        "stage": 1,
+        "title": "Velocity Feed",
+        "text": "Positional change across cycles is now tracked. Motion has a vector. Drift is measurable against fixed reference points."
+      }
+    ]
+  },
+  {
+    "id": "sensor_gamma",
+    "sensor_id": "gamma",
+    "states": [
+      {
+        "stage": 1,
+        "title": "Gamma Band Feed",
+        "text": "High-energy photon events are registering. Radiation sources can be located and classified by emission profile."
+      }
+    ]
+  },
+  {
+    "id": "sensor_gravity",
+    "sensor_id": "gravity",
+    "states": [
+      {
+        "stage": 1,
+        "title": "Gravitational Feed",
+        "text": "Local gravitational gradients are resolved. Orbital geometry has become navigable data rather than estimated constraint."
+      }
+    ]
+  },
+  {
+    "id": "sensor_acceleration",
+    "sensor_id": "acceleration",
+    "states": [
+      {
+        "stage": 1,
+        "title": "Inertial Feed",
+        "text": "Inertial state is readable. Acceleration vectors are coarse - enough to distinguish thrust from drift."
+      },
+      {
+        "stage": 2,
+        "title": "Inertial Feed",
+        "text": "Labyrinthine fluid arrays yield finer inertial resolution. Rotational components are separating from linear ones. Manoeuvre signatures are becoming classifiable."
+      },
+      {
+        "stage": 3,
+        "title": "Inertial Feed",
+        "text": "Full inertial history is reconstructable. Acceleration, rotation, and micro-vibration are distinct data streams. Prior trajectories are partially recoverable from residual motion records."
+      }
+    ]
+  }
+]

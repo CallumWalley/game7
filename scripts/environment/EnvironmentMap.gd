@@ -5,11 +5,12 @@ const WORLD_BOUNDS := Rect2(Vector2(-1400.0, -900.0), Vector2(2800.0, 1800.0))
 const AUTO_OBSERVE_RADIUS: float = 150.0
 const ORBIT_SEGMENTS: int = 80
 const SENSOR_FILTER_COLORS := {
-	"light": Color(0.84, 0.9, 1.0, 1.0),
+	"thermal": Color(0.96, 0.82, 0.56, 1.0),
 	"radio": Color(0.48, 0.92, 1.0, 1.0),
-	"heat": Color(1.0, 0.58, 0.32, 1.0),
+	"velocity": Color(0.72, 0.95, 0.68, 1.0),
 	"gamma": Color(0.96, 0.7, 0.4, 1.0),
 	"gravity": Color(0.62, 0.82, 1.0, 1.0),
+	"acceleration": Color(1.0, 0.74, 0.38, 1.0),
 }
 
 @export var player_acceleration: float = 260.0
@@ -21,7 +22,7 @@ var player_position: Vector2 = Vector2.ZERO
 var player_rotation: float = 0.0
 var player_velocity: Vector2 = Vector2.ZERO
 var player_sidebar_visible: bool = true
-var _active_sensor_filter: String = "light"
+var _active_sensor_filter: String = "thermal"
 var _player_spawn_initialized: bool = false
 var _sun_position: Vector2 = Vector2.ZERO
 var _has_sun_position: bool = false
@@ -237,6 +238,16 @@ func _get_signal_strength(obj_data: Dictionary) -> float:
 	if _active_sensor_filter == "":
 		return 1.0
 	var observability_profile: Dictionary = obj_data.get("observability_profile", {})
+	if _active_sensor_filter == "velocity":
+		var velocity_signal := float(observability_profile.get("velocity", -1.0))
+		if velocity_signal < 0.0:
+			velocity_signal = maxf(float(observability_profile.get("radio", 0.0)) * 0.65, float(observability_profile.get("gravity", 0.0)) * 0.55)
+		return clampf(velocity_signal, 0.0, 1.0)
+	if _active_sensor_filter == "acceleration":
+		var acceleration_signal := float(observability_profile.get("acceleration", -1.0))
+		if acceleration_signal < 0.0:
+			acceleration_signal = maxf(float(observability_profile.get("gamma", 0.0)) * 0.55, float(observability_profile.get("gravity", 0.0)) * 0.75)
+		return clampf(acceleration_signal, 0.0, 1.0)
 	return clampf(float(observability_profile.get(_active_sensor_filter, 0.0)), 0.0, 1.0)
 
 

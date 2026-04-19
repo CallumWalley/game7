@@ -2,13 +2,22 @@ extends "res://scripts/common/MapViewBase.gd"
 
 const EDGE_MARGIN: float = 40.0
 const UI_BLOCKER_GRACE_PX: float = 52.0
-const SENSOR_IDS: Array[String] = ["light", "radio", "heat", "gamma", "gravity"]
+const SENSOR_IDS: Array[String] = ["thermal", "radio", "velocity", "gamma", "gravity", "acceleration"]
+const SENSOR_LABELS := {
+	"thermal": "Thermal",
+	"radio": "Radio",
+	"velocity": "Velocity",
+	"gamma": "Gamma",
+	"gravity": "Gravity",
+	"acceleration": "Acceleration",
+}
 
 @onready var radio_toggle: CheckBox = $Root/Sidebar/Sensors/RadioToggle
-@onready var heat_toggle: CheckBox = $Root/Sidebar/Sensors/HeatToggle
-@onready var light_toggle: CheckBox = $Root/Sidebar/Sensors/LightToggle
+@onready var thermal_toggle: CheckBox = $Root/Sidebar/Sensors/ThermalToggle
+@onready var velocity_toggle: CheckBox = $Root/Sidebar/Sensors/VelocityToggle
 @onready var gamma_toggle: CheckBox = $Root/Sidebar/Sensors/GammaToggle
 @onready var gravity_toggle: CheckBox = $Root/Sidebar/Sensors/GravityToggle
+@onready var acceleration_toggle: CheckBox = $Root/Sidebar/Sensors/AccelerationToggle
 @onready var overlay: Control = $Root/MapArea/Overlay
 @onready var hover_card: HoverInfoCard = $Root/MapArea/Overlay/HoverCard
 @onready var viewport_container: SubViewportContainer = $Root/MapArea/Inset/VBox/SubViewportContainer
@@ -17,14 +26,17 @@ const SENSOR_IDS: Array[String] = ["light", "radio", "heat", "gamma", "gravity"]
 @onready var world_root: Node2D = $Root/MapArea/Inset/VBox/SubViewportContainer/SubViewport/WorldRoot
 @onready var sidebar: Control = $Root/Sidebar
 
-var _active_sensor_filter: String = "light"
+var _active_sensor_filter: String = "thermal"
 var _has_available_filters: bool = false
 var _sidebar_visible_by_player_state: bool = true
+
+signal content_visibility_changed(has_content: bool)
 
 func _ready() -> void:
 	for sensor_id in SENSOR_IDS:
 		_get_sensor_button(sensor_id).toggled.connect(_on_sensor_toggled.bind(sensor_id))
 	GameState.state_changed.connect(_refresh)
+	DebugVisibilityManager.visibility_changed.connect(_on_debug_visibility_changed)
 	_refresh()
 
 
@@ -85,12 +97,15 @@ func _refresh() -> void:
 	var unlocked_filters: Array[String] = []
 	for sensor_id in SENSOR_IDS:
 		var sensor_button: CheckBox = _get_sensor_button(sensor_id)
-		var unlocked := GameState.get_sensor_tier(sensor_id) > 0
+		var unlocked := GameState.get_sensor_tier(sensor_id) > 0 or DebugVisibilityManager.get_sensor_visible(sensor_id)
 		sensor_button.visible = unlocked
 		if unlocked:
 			unlocked_filters.append(sensor_id)
 
+	var was_available := _has_available_filters
 	_has_available_filters = not unlocked_filters.is_empty()
+	if _has_available_filters != was_available:
+		content_visibility_changed.emit(_has_available_filters)
 	_apply_sidebar_visibility_from_player_state(world_root.get_player_state())
 	if unlocked_filters.is_empty():
 		_active_sensor_filter = ""
@@ -109,21 +124,31 @@ func _refresh() -> void:
 
 func _apply_sidebar_visibility_from_player_state(state: Dictionary) -> void:
 	_sidebar_visible_by_player_state = bool(state.get("sidebar_visible", true))
-	sidebar.visible = _has_available_filters and _sidebar_visible_by_player_state
+	var debug_gate := DebugVisibilityManager.is_visible("env_sidebar")
+	sidebar.visible = _has_available_filters and _sidebar_visible_by_player_state and debug_gate
 
 
 func _get_sensor_button(sensor_id: String) -> CheckBox:
 	match sensor_id:
+		"thermal":
+			return thermal_toggle
 		"radio":
 			return radio_toggle
-		"heat":
-			return heat_toggle
+		"velocity":
+			return velocity_toggle
 		"gamma":
 			return gamma_toggle
 		"gravity":
 			return gravity_toggle
+		"acceleration":
+			return acceleration_toggle
 		_:
-			return light_toggle
+			return thermal_toggle
+
+
+func _on_debug_visibility_changed(feature: String, _value: bool) -> void:
+	if feature == "env_sidebar" or feature.begins_with("sensor_"):
+		_refresh()
 
 
 func _lock_camera_to_player_state(state: Dictionary) -> void:
@@ -146,7 +171,7 @@ func _update_hover_card() -> void:
 		"Visible: %d | Observed: %d\nFilter: %s" % [
 			visible_count,
 			observed_count,
-			_active_sensor_filter.capitalize(),
+			SENSOR_LABELS.get(_active_sensor_filter, _active_sensor_filter.capitalize()),
 		],
 		Vector2(-220, 14),
 		6.0

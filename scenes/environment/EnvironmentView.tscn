@@ -69,21 +69,21 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_constants/separation = 6
 
-[node name="LightToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1877300193]
+[node name="ThermalToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1877300193]
 layout_mode = 2
 button_pressed = true
 button_group = SubResource("ButtonGroup_filters")
-text = "Light"
+text = "Thermal"
 
 [node name="RadioToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=599920869]
 layout_mode = 2
 button_group = SubResource("ButtonGroup_filters")
 text = "Radio"
 
-[node name="HeatToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
+[node name="VelocityToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
 layout_mode = 2
 button_group = SubResource("ButtonGroup_filters")
-text = "Heat"
+text = "Velocity"
 
 [node name="GammaToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1450283312]
 layout_mode = 2
@@ -94,3 +94,8 @@ text = "Gamma"
 layout_mode = 2
 button_group = SubResource("ButtonGroup_filters")
 text = "Gravity"
+
+[node name="AccelerationToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1845421101]
+layout_mode = 2
+button_group = SubResource("ButtonGroup_filters")
+text = "Acceleration"

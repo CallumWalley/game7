@@ -7,20 +7,25 @@ UI.md is the authoritative document for shared HUD behavior, tab visibility, wor
 
 ## Global layout
 
-- Top overlay: menu, time controls, and resources.
+- Top overlay: time controls and resources.
 - Main area: tabs for Mind, Body, Environment.
 - Left floating global key: worker node counts by type (`idle / total`).
+- Center overlay: system menu card toggled with `Esc`.
 
 Global HUD remains visible in all views.
 
 ## Top overlay
 
 ### Menu
-- Save (placeholder)
-- Load (placeholder)
-- Settings
-- Debug mode toggle (single entry)
-- Quit (placeholder)
+- The top-bar menu button is removed.
+- Press `Esc` to toggle a centered system menu card.
+- Opening the card pauses cycle advancement; closing it unpauses.
+- The card has a dedicated `Close` button and contains:
+  - Save (placeholder)
+  - Load (placeholder)
+  - Settings
+  - Debug mode toggle (single entry)
+  - Quit (placeholder)
 
 Debug options are centralized in the floating Debug window. The top menu no longer duplicates debug feature toggles.
 
@@ -47,7 +52,11 @@ Persistence scaffold uses Godot `ConfigFile` (`user://settings.cfg`) with `Apply
 Development builds can hide time controls through the debug visibility system. The Time Controls container is the authoritative element for this state, so all pause, step, and speed actions disappear together when the feature is disabled.
 
 ### Resource line
-- Shows food, last-cycle food consumption, and aggregate power.
+- Shows food and signed net food balance per tick (`output - requested`).
+- Food balance signal is authoritative:
+  - red when requested food is greater than current output
+  - green when output is greater than current requested usage
+  - neutral when balanced
 
 ## Global key
 

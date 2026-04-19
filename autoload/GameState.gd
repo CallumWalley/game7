@@ -16,6 +16,13 @@ const NODE_TYPE_LABELS := {
 	NODE_TYPE_ARITHMETIC_PROCESSOR: "ArithmeticProcessor",
 	NODE_TYPE_QUANTUM_CALCULATOR: "QuantumCalculator",
 }
+const RESOURCE_TYPE_FOOD: String = "food"
+const RESOURCE_TYPE_ORDER: Array[String] = [
+	RESOURCE_TYPE_FOOD,
+]
+const RESOURCE_TYPE_LABELS: Dictionary = {
+	RESOURCE_TYPE_FOOD: "Food",
+}
 const ENTITY_DEFS := {
 	ENTITY_PLAYER: {
 		"color": Color(0.35, 0.62, 1.0, 1.0),
@@ -59,11 +66,13 @@ var _environment_has_sun_position: bool = false
 
 var food: float = 120.0
 var last_tick_food_consumed: float = 0.0
+var last_tick_food_requested: float = 0.0
+var last_tick_food_output: float = 0.0
 var last_tick_power_total: float = 0.0
 var unlocked_body_nodes: Dictionary = {"core_boot": true}
 var contested_body_nodes: Dictionary = {}
 var unlocked_memories: Dictionary = {"waking_fragment": true}
-var unlocked_sensors: Dictionary = {"light": true}
+var unlocked_sensors: Dictionary = {}
 var observed_environment: Dictionary = {}
 var thought_queue: Array[String] = []
 @export var world_seed: int = -1
@@ -240,6 +249,8 @@ func _simulate_food_tick() -> void:
 	# Update cached food value
 	food = calculate_total_food_from_adipose()
 	last_tick_food_consumed = consumed_total
+	last_tick_food_requested = total_request
+	last_tick_food_output = total_available
 
 	var power_total: float = 0.0
 	for cluster in all_clusters:

@@ -102,7 +102,7 @@ func update_activation_from_workers() -> bool:
 		is_activated = active
 		controlling_entity = GameState.ENTITY_PLAYER if active else GameState.ENTITY_NONE
 		if is_activated:
-			GameState.report_component_controlled(self)
+			ProgressionSystem.report_component_controlled(self)
 		activation_changed.emit(is_activated)
 	_update_visual_state()
 	return is_activated

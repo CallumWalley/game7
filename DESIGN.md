@@ -150,8 +150,8 @@ Each item in the array defines:
 - `{total_food_contribution}` — `controlled_count × food_output_per_cycle`.
 
 **Trigger points:**
-- State 1: `BodyView._on_component_hovered` → `GameState.on_component_first_hovered(component_type_id)`.
-- State 2: component `update_activation_from_workers` → `GameState.report_component_controlled(self)` → `GameState.on_component_captured(component_type_id)`.
+- State 1: `BodyView._on_component_hovered` → `ProgressionSystem.report_component_first_hovered(component_type_id)`.
+- State 2: component `update_activation_from_workers` → `ProgressionSystem.report_component_controlled(self)`.
 
 **Adding a new component entry (no code changes required beyond the component script):**
 1. Add `@export var component_type_id: String = "my_type"` to the component script.
@@ -163,6 +163,10 @@ Each item in the array defines:
 
 Core progression memories are authored in `data/progression_mind_entries.json` and resolved by `ProgressionSystem`.
 
+Current runtime behavior:
+- Core progression entries are currently pinned to baseline stage (`stage 0`).
+- `track` metadata remains in data for future staged progression logic.
+
 - `waking_fragment` is now a staged main-story entry (`track: "main_story"`).
 - `body_function_log` tracks Body capability progression (`track: "body"`).
 - `environment_function_log` tracks Environment capability progression (`track: "environment"`).
@@ -173,9 +177,9 @@ Schema per entry:
 - `states: Array[{ stage: int, title: String, text: String }]`
 
 Selection rule:
-- Runtime selects the highest `states[].stage` less than or equal to current computed stage.
-- Entries are registered as dynamic mind entries, which allows them to update over time.
-- If a stage advances, the entry is marked unread again by clearing its read-state flag.
+- Runtime currently resolves baseline stage only (`stage 0`) for core entries.
+- Sensor entries (`data/sensor_mind_entries.json`) resolve by current sensor tier.
+- Entries are registered as dynamic mind entries, which allows updates over time.
 
 Authoring rules:
 - Keep stage values monotonic (`0, 1, 2, ...`) with no duplicate stage numbers.

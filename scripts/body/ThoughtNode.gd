@@ -297,7 +297,7 @@ func set_controlling_entity(entity: int) -> void:
     refresh_status(true)
     ownership_changed.emit(old, entity)
     if entity == ControllingEntity.PLAYER:
-        GameState.report_node_controlled(self)
+        ProgressionSystem.report_node_controlled(self)
     GameState.state_changed.emit()
 
 
