@@ -53,7 +53,7 @@ func _generate_runtime_state_on_first_visibility() -> void:
 
 func _animate_visuals(delta: float) -> void:
 	super._animate_visuals(delta)
-	if _base_polygon.is_empty():
+	if _glucose == null or _base_polygon.is_empty():
 		return
 	var glucose_val := _glucose.current_glucose
 	var fed_actual := _glucose_factor(glucose_val)
@@ -102,16 +102,20 @@ func apply_food_result(_request_units: float, _allocated_units: float, glucose_d
 
 
 func get_hidden_power() -> float:
+	if _glucose == null:
+		return 0.0
 	var glucose_val := _glucose.current_glucose
 	return remap(clampf(glucose_val, GameState.coma_glucose_threshold, GameState.power_full_glucose), GameState.coma_glucose_threshold, GameState.power_full_glucose, 0.0, 1.0)
 
 
 func is_in_coma() -> bool:
+	if _glucose == null:
+		return false
 	return _glucose.current_glucose < GameState.coma_glucose_threshold
 
 
 func can_player_enable() -> bool:
-	return not is_in_coma()
+	return not is_in_coma() and is_connected_to_source_node()
 
 
 func _delta_if_fully_fed(request_units: float) -> float:
@@ -126,6 +130,8 @@ func _get_status_condition_data() -> Dictionary:
 
 
 func _get_visual_energy_factor() -> float:
+	if _glucose == null:
+		return 0.5
 	var hue_glucose := _glucose.current_glucose if is_enabled else 30.0
 	return _glucose_factor(hue_glucose)
 

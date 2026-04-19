@@ -59,12 +59,12 @@ func _requirements_met(obj_data: Dictionary) -> bool:
 		return false
 
 	for sensor_id in obj_data.get("required_sensors", []):
-		if GameState.get_sensor_tier(str(sensor_id)) < 1:
+		if GameState.get_effective_sensor_tier(str(sensor_id)) < 1:
 			return false
 
 	var sensor_requirements: Dictionary = obj_data.get("sensor_requirements", {})
 	for sensor_id in sensor_requirements.keys():
-		if GameState.get_sensor_tier(str(sensor_id)) < int(sensor_requirements[sensor_id]):
+		if GameState.get_effective_sensor_tier(str(sensor_id)) < int(sensor_requirements[sensor_id]):
 			return false
 
 	return ProgressionSystem.evaluate_condition(obj_data.get("unlock_condition", {}))

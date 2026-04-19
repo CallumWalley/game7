@@ -2,7 +2,6 @@
 name: Leader
 description: "Use when a change spans multiple systems, needs cross-system integration, requires game design observation, or should update project documentation to keep Body, Mind, Environment, UI, Visual Effects, and story aligned. Do not use for isolated single-system tasks that fit a specialist agent."
 tools: [read, edit, search, execute]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the multi-system change, integration risk, or documentation update needed"
 user-invocable: true
 ---

@@ -57,7 +57,13 @@ var cycle: int = 0
 @export var capture_resistance_max: float = 3.0
 @export var capture_decay_per_cycle: float = 0.35
 @export var ship_rotation_radians: float = 0.0
-@export var ship_rotational_velocity_per_cycle: float = 0.045
+@export var starting_ship_rotation_rpm: float = 1.5
+@export var sun_exposure_alignment_power: float = 1.0
+@export var sun_exposure_reference_distance: float = 420.0
+@export var sun_exposure_distance_power: float = 1.0
+@export var sun_exposure_min_distance_factor: float = 0.2
+@export var sun_exposure_max_distance_factor: float = 1.8
+var ship_rotational_velocity_per_cycle: float = 0.0
 @export var sun_world_angle_radians: float = 0.0
 
 var environment_ship_position: Vector2 = Vector2.ZERO
@@ -68,6 +74,7 @@ var food: float = 120.0
 var last_tick_food_consumed: float = 0.0
 var last_tick_food_requested: float = 0.0
 var last_tick_food_output: float = 0.0
+var _tick_food_charged: float = 0.0
 var last_tick_power_total: float = 0.0
 var unlocked_body_nodes: Dictionary = {"core_boot": true}
 var contested_body_nodes: Dictionary = {}
@@ -124,6 +131,7 @@ func _ready() -> void:
 	if world_seed < 0:
 		world_seed = _rng.randi()
 	food = starting_food
+	set_ship_rotation_rpm(starting_ship_rotation_rpm)
 	_load_component_mind_entries()
 
 
@@ -154,8 +162,10 @@ func advance_cycles(amount: int, _reason: String = "") -> void:
 	var steps: int = maxi(amount, 0)
 	for _i in steps:
 		_advance_ship_rotation()
+		_tick_food_charged = 0.0
 		_simulate_food_tick()
 		_simulate_worker_tick()
+		last_tick_food_output = _tick_food_charged
 		cycle += 1
 	emit_signal("state_changed")
 
@@ -185,13 +195,28 @@ func get_sun_direction_world() -> Vector2:
 	return Vector2.RIGHT.rotated(sun_world_angle_radians)
 
 
-func get_surface_sun_factor(surface_local_direction: Vector2) -> float:
+func get_sun_distance_factor() -> float:
+	if not _environment_has_sun_position:
+		return 1.0
+	var distance := environment_ship_position.distance_to(environment_sun_position)
+	var safe_distance := maxf(distance, 1.0)
+	var safe_reference := maxf(sun_exposure_reference_distance, 1.0)
+	var raw_factor := pow(safe_reference / safe_distance, sun_exposure_distance_power)
+	return clampf(raw_factor, sun_exposure_min_distance_factor, sun_exposure_max_distance_factor)
+
+
+func get_surface_alignment_factor(surface_local_direction: Vector2) -> float:
 	var local_dir := surface_local_direction
 	if local_dir.length_squared() <= 0.0:
 		return 0.0
 	var surface_world_dir := local_dir.normalized().rotated(ship_rotation_radians)
 	var sun_dir := get_sun_direction_world().normalized()
-	return maxf(surface_world_dir.dot(sun_dir), 0.0)
+	var alignment := maxf(surface_world_dir.dot(sun_dir), 0.0)
+	return pow(alignment, sun_exposure_alignment_power)
+
+
+func get_surface_sun_factor(surface_local_direction: Vector2) -> float:
+	return get_surface_alignment_factor(surface_local_direction) * get_sun_distance_factor()
 
 
 func _simulate_food_tick() -> void:
@@ -246,8 +271,7 @@ func _simulate_food_tick() -> void:
 	# Update cached food value
 	food = calculate_total_food_from_adipose()
 	last_tick_food_consumed = consumed_total
-	last_tick_food_requested = total_request
-	last_tick_food_output = total_available
+	last_tick_food_requested = consumed_total
 
 	var power_total: float = 0.0
 	for cluster in all_clusters:
@@ -572,6 +596,18 @@ func remove_worker_from_target(target_id: String) -> bool:
 	return true
 
 
+func clear_workers_from_target(target_id: String) -> bool:
+	if not worker_targets.has(target_id):
+		return false
+	var target: Dictionary = worker_targets[target_id]
+	var workers: Dictionary = target.get("workers", _empty_workers_dict())
+	if _total_workers(workers) <= 0:
+		return false
+	target["workers"] = _empty_workers_dict()
+	worker_targets[target_id] = target
+	return true
+
+
 func _pick_most_idle_type(idle_counts: Dictionary) -> String:
 	var best_type := ""
 	var best_count := -1
@@ -707,7 +743,7 @@ func can_create_capture_task(target_node: Node) -> bool:
 func can_assign_to_component(component: Node) -> bool:
 	if not bool(component.get("is_enabled")):
 		return false
-	if not bool(component.call("is_connected_to_player_node")):
+	if not bool(component.call("is_connected_to_source_node")):
 		return false
 	if not bool(component.call("allows_worker_assignment")):
 		return false
@@ -752,6 +788,10 @@ func unlock_sensor(sensor_id: String) -> void:
 	set_sensor_tier(sensor_id, 1)
 
 
+func get_effective_sensor_tier(sensor_id: String) -> int:
+	return maxi(get_sensor_tier(sensor_id), DebugVisibilityManager.get_sensor_level(sensor_id))
+
+
 func get_sensor_tier(sensor_id: String) -> int:
 	if not unlocked_sensors.has(sensor_id):
 		return 0
@@ -767,6 +807,11 @@ func set_sensor_tier(sensor_id: String, tier: int) -> void:
 		return
 	unlocked_sensors[sensor_id] = next_tier
 	emit_signal("state_changed")
+
+
+func set_ship_rotation_rpm(value: float) -> void:
+	starting_ship_rotation_rpm = value
+	ship_rotational_velocity_per_cycle = value * TAU / 60.0
 
 
 func record_observation(observation_id: String) -> void:
@@ -853,10 +898,11 @@ func get_owned_adipose_tissue_count() -> int:
 
 
 func calculate_total_food_from_adipose() -> float:
-	"""Calculate total food as sum of glucose in all owned ADIs."""
+	"""Calculate total food as sum of glucose in all active owned ADIs."""
 	var total := 0.0
 	for adi in _owned_adi_components:
-		total += float(adi.call("get_current_glucose"))
+		if bool(adi.get("is_activated")):
+			total += float(adi.call("get_current_glucose"))
 	return total
 
 
@@ -876,7 +922,8 @@ func _distribute_glucose_production(amount: float, _source: Node) -> void:
 		var adi_charge_rate := float(adi.call("get_charge_rate"))
 		var proportion := adi_charge_rate / total_charge_rate
 		var adi_charge_amount := amount * proportion
-		adi.call("charge_glucose", adi_charge_amount)
+		var actually_charged := float(adi.call("charge_glucose", adi_charge_amount))
+		_tick_food_charged += actually_charged
 
 
 func _register_and_unlock_runtime_mind_entry(data: Dictionary) -> void:

@@ -2,7 +2,6 @@
 name: UI Leader
 description: "Use when coordinating or tuning UI signals across the game: HUD, tabs, hover cards, node and link readability, ownership contrast, workerBench visualization, resource displays, interaction language, layout consistency, or cross-screen hierarchy. Do not use when the change is purely Body, Mind, Environment, or Story mechanics without UI impact, or when it involves shader authoring, polygon animations, or new visual effects implementation."
 tools: [read, edit, search, execute]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the UI or visual-signal issue, affected screens, and readability or interaction outcome needed"
 user-invocable: true
 ---

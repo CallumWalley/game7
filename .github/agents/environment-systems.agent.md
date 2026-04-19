@@ -2,7 +2,6 @@
 name: Environment Systems
 description: "Use when implementing or refactoring environment mechanics: sensors, environment map behavior, movement, observations, visibility rules, or environment-side progression hooks. Do not use for UI-only hierarchy work, story-only consistency edits, body-only mechanic changes, or shader/visual-effects implementation (e.g. fog-of-war shader tuning, vision reveal effects)."
 tools: [read, edit, search, execute]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the environment mechanic, sensor rule, movement behavior, or map system to change"
 user-invocable: true
 ---

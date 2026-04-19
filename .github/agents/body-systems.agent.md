@@ -2,7 +2,6 @@
 name: Body Systems
 description: "Use when implementing or refactoring body mechanics: body nodes, components, body map behavior, fragments, resource pressure, capture rules, or shared body-side state across systems. Do not use when the task is primarily UI signal tuning, story wording, multi-system integration strategy, shader authoring, polygon animation, or visual effects implementation."
 tools: [read, edit, search, execute]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the body mechanic, node/component behavior, or body-map system to change"
 user-invocable: true
 ---

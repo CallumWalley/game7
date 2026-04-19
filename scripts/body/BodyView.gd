@@ -19,9 +19,13 @@ var _hovered_component: Node = null
 var _suppress_status_popup_once: Dictionary = {}
 var _known_cluster_statuses: Dictionary = {}
 var _hover_card_hide_timer: float = -1.0
+var _hover_card_show_timer: float = -1.0
 var _worker_bench_layer: Node2D
 var _worker_bench_roots: Dictionary = {}
 const HOVER_CARD_HIDE_DELAY: float = 0.18
+const INFO_CARD_TOOLTIP_DELAY_DEFAULT: float = 0.6
+const INFO_CARD_TOOLTIP_DELAY_SETTING_KEY: String = "gameplay/info_card_tooltip_delay_sec"
+const SETTINGS_PATH: String = "user://settings.cfg"
 const HOVER_CARD_MOUSE_OFFSET: Vector2 = Vector2(-220.0, 14.0)
 const PAN_BOUNDS_PADDING: float = 420.0
 const VISION_RADIUS_WORLD: float = 280.0
@@ -47,6 +51,7 @@ const VISION_SHADER := preload("res://shaders/vision_mask.gdshader")
 
 
 func _ready() -> void:
+	_apply_info_card_tooltip_delay_from_settings()
 	var vision_material := ShaderMaterial.new()
 	vision_material.shader = VISION_SHADER
 	_vision_mask.material = vision_material
@@ -66,10 +71,19 @@ func _ready() -> void:
 		component.clicked.connect(_on_component_clicked)
 		component.hovered.connect(_on_component_hovered)
 		component.unhovered.connect(_on_component_unhovered)
+	DebugVisibilityManager.option_changed.connect(func(option: String, _v: bool) -> void:
+		if option == DebugVisibilityManager.OPTION_BODY_HOVER_STATS:
+			_refresh_cards_content()
+	)
 	_refresh_key()
 
 
 func _on_map_process(delta: float) -> void:
+	if (_hovered_cluster != null or _hovered_component != null) and _hover_card_show_timer >= 0.0:
+		_hover_card_show_timer -= delta
+		if _hover_card_show_timer <= 0.0:
+			_hover_card_show_timer = -1.0
+			_refresh_cards_content()
 	if _hovered_cluster == null and _hovered_component == null and _hover_card_hide_timer >= 0.0:
 		_hover_card_hide_timer -= delta
 		if _hover_card_hide_timer <= 0.0:
@@ -103,25 +117,31 @@ func _is_edge_scroll_enabled() -> bool:
 func _on_cluster_hovered(cluster) -> void:
 	_hovered_component = null
 	_hovered_cluster = cluster
+	_hover_card_show_timer = _get_info_card_tooltip_delay_seconds()
 	_hover_card_hide_timer = -1.0
-	_update_info()
+	if _hover_card_show_timer <= 0.0:
+		_update_info()
 
 
 func _on_cluster_unhovered() -> void:
 	_hovered_cluster = null
+	_hover_card_show_timer = -1.0
 	_hover_card_hide_timer = HOVER_CARD_HIDE_DELAY
 
 
 func _on_component_hovered(component) -> void:
 	_hovered_cluster = null
 	_hovered_component = component
+	_hover_card_show_timer = _get_info_card_tooltip_delay_seconds()
 	_hover_card_hide_timer = -1.0
 	ProgressionSystem.report_component_first_hovered(str(component.get("component_type_id")))
-	_update_info()
+	if _hover_card_show_timer <= 0.0:
+		_update_info()
 
 
 func _on_component_unhovered(_component) -> void:
 	_hovered_component = null
+	_hover_card_show_timer = -1.0
 	_hover_card_hide_timer = HOVER_CARD_HIDE_DELAY
 
 
@@ -139,6 +159,8 @@ func _on_cluster_clicked(cluster, button_index: int) -> void:
 			if bool(cluster.call("can_player_enable")):
 				cluster.call("set_enabled", true)
 				_show_world_popup(cluster, "Activation on.", ACTION_POPUP_INFO_COLOR)
+			elif not bool(cluster.call("is_connected_to_source_node")):
+				_show_world_popup(cluster, "No route to source.", ACTION_POPUP_WARN_COLOR)
 			else:
 				_show_world_popup(cluster, "Cannot activate while in coma.", ACTION_POPUP_WARN_COLOR)
 		_refresh_key()
@@ -193,7 +215,23 @@ func _update_info() -> void:
 		if _hover_card_hide_timer < 0.0:
 			_hide_card(_hovered_card)
 		return
+	if _hover_card_show_timer >= 0.0:
+		return
 	_refresh_cards_content()
+
+
+func _apply_info_card_tooltip_delay_from_settings() -> void:
+	var cfg := ConfigFile.new()
+	var delay_seconds := INFO_CARD_TOOLTIP_DELAY_DEFAULT
+	if cfg.load(SETTINGS_PATH) == OK:
+		delay_seconds = float(cfg.get_value("gameplay", "info_card_tooltip_seconds", INFO_CARD_TOOLTIP_DELAY_DEFAULT))
+	ProjectSettings.set_setting(INFO_CARD_TOOLTIP_DELAY_SETTING_KEY, maxf(delay_seconds, 0.0))
+
+
+func _get_info_card_tooltip_delay_seconds() -> float:
+	if ProjectSettings.has_setting(INFO_CARD_TOOLTIP_DELAY_SETTING_KEY):
+		return maxf(float(ProjectSettings.get_setting(INFO_CARD_TOOLTIP_DELAY_SETTING_KEY)), 0.0)
+	return INFO_CARD_TOOLTIP_DELAY_DEFAULT
 
 
 func _refresh_key() -> void:
@@ -260,14 +298,14 @@ func _set_card_content(card: HoverInfoCard, cluster: Node) -> void:
 				details += "\nCapture: %d%%" % int(round(GameState.get_target_progress_ratio(task_id) * 100.0))
 				details += "\nWorkers: %s" % WORKER_DISPLAY_UTILS.format_worker_mix(workers)
 				details += "\nEff. power: %.2f" % GameState.get_target_total_power(task_id)
-		if DebugVisibilityManager.get_option(DebugVisibilityManager.OPTION_BODY_HOVER_STATS):
-			var glucose_value := float(cluster.get("glucose"))
-			var power_value := 0.0
-			var resistance_value := float(cluster.get("resistance"))
-			power_value = float(cluster.call("get_hidden_power"))
-			details += "\nGlucose: %d\nPower: %.2f\nResistance: %.2f" % [int(round(glucose_value)), power_value, resistance_value]
 	else:
 		details = "Status: %s\nUnderstanding incomplete." % emotion_txt
+	if DebugVisibilityManager.get_option(DebugVisibilityManager.OPTION_BODY_HOVER_STATS):
+		var condition_data: Dictionary = cluster.call("_get_status_condition_data")
+		var glucose_value: int = condition_data.get("glucose", 0)
+		var resistance_value: float = cluster.get("resistance")
+		var power_value: float = cluster.call("get_hidden_power")
+		details += "\nGlucose: %d\nPower: %.2f\nResistance: %.2f" % [glucose_value, power_value, resistance_value]
 	card.set_content(
 		title,
 		details
@@ -292,7 +330,7 @@ func _set_component_card_content(card: HoverInfoCard, component: Node) -> void:
 	var workers: Dictionary = GameState.get_target_workers(target_id)
 	var current_power: float = GameState.get_target_total_power(target_id)
 	var required_power := float(component.get("required_power"))
-	var connected := bool(component.call("is_connected_to_player_node"))
+	var connected := bool(component.call("is_connected_to_source_node"))
 	if understanding_state >= 2:
 		if details != "":
 			details += "\n\n"
@@ -400,8 +438,8 @@ func _get_component_activation_blockers(component: Node) -> Array[String]:
 	var blockers: Array[String] = []
 	if not bool(component.get("is_enabled")):
 		blockers.append("switch is off")
-	if not bool(component.call("is_connected_to_player_node")):
-		blockers.append("not connected")
+	if not bool(component.call("is_connected_to_source_node")):
+		blockers.append("no route to source")
 	if bool(component.call("allows_worker_assignment")):
 		var target_id: String = str(component.call("get_worker_target_id"))
 		var required_power := float(component.get("required_power"))
@@ -414,8 +452,8 @@ func _get_component_activation_blockers(component: Node) -> Array[String]:
 func _get_component_assignment_block_reason(component: Node) -> String:
 	if not bool(component.get("is_enabled")):
 		return "Activation is off."
-	if not bool(component.call("is_connected_to_player_node")):
-		return "No route from owned clusters."
+	if not bool(component.call("is_connected_to_source_node")):
+		return "No route to source node."
 	if not bool(component.call("allows_worker_assignment")):
 		return "This component does not take workers."
 	var target_id: String = str(component.call("get_worker_target_id"))

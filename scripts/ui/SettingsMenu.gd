@@ -8,6 +8,8 @@ const SETTINGS_PATH: String = "user://settings.cfg"
 @onready var difficulty_option: OptionButton = $Margin/VBox/Tabs/Gameplay/GameplayVBox/DifficultyRow/DifficultyOption
 @onready var tooltip_slider: HSlider = $Margin/VBox/Tabs/Gameplay/GameplayVBox/TooltipRow/TooltipSlider
 @onready var tooltip_value_label: Label = $Margin/VBox/Tabs/Gameplay/GameplayVBox/TooltipRow/TooltipValue
+@onready var info_card_tooltip_slider: HSlider = $Margin/VBox/Tabs/Gameplay/GameplayVBox/InfoCardTooltipRow/InfoCardTooltipSlider
+@onready var info_card_tooltip_value_label: Label = $Margin/VBox/Tabs/Gameplay/GameplayVBox/InfoCardTooltipRow/InfoCardTooltipValue
 @onready var window_mode_option: OptionButton = $Margin/VBox/Tabs/Video/VideoVBox/WindowModeRow/WindowModeOption
 @onready var vsync_toggle: CheckBox = $Margin/VBox/Tabs/Video/VideoVBox/VSyncToggle
 @onready var ui_scale_slider: HSlider = $Margin/VBox/Tabs/Video/VideoVBox/UIScaleRow/UIScaleSlider
@@ -57,6 +59,7 @@ func _setup_options() -> void:
 
 func _bind_events() -> void:
 	tooltip_slider.value_changed.connect(_on_slider_changed)
+	info_card_tooltip_slider.value_changed.connect(_on_slider_changed)
 	ui_scale_slider.value_changed.connect(_on_slider_changed)
 	master_slider.value_changed.connect(_on_slider_changed)
 	music_slider.value_changed.connect(_on_slider_changed)
@@ -72,6 +75,7 @@ func _default_settings() -> Dictionary:
 		"gameplay/push_scroll": GameState.enable_push_scroll,
 		"gameplay/difficulty": 1,
 		"gameplay/tooltip_seconds": 2.0,
+		"gameplay/info_card_tooltip_seconds": 0.6,
 		"video/window_mode": Window.MODE_WINDOWED,
 		"video/vsync": true,
 		"video/ui_scale": 1.0,
@@ -110,6 +114,7 @@ func _apply_settings_to_ui() -> void:
 	push_scroll_toggle.button_pressed = _settings["gameplay/push_scroll"]
 	difficulty_option.select(int(_settings["gameplay/difficulty"]))
 	tooltip_slider.value = float(_settings["gameplay/tooltip_seconds"])
+	info_card_tooltip_slider.value = float(_settings["gameplay/info_card_tooltip_seconds"])
 	window_mode_option.select(window_mode_option.get_item_index(int(_settings["video/window_mode"])))
 	vsync_toggle.button_pressed = _settings["video/vsync"]
 	ui_scale_slider.value = float(_settings["video/ui_scale"])
@@ -126,6 +131,7 @@ func _collect_ui_settings() -> void:
 	_settings["gameplay/push_scroll"] = push_scroll_toggle.button_pressed
 	_settings["gameplay/difficulty"] = difficulty_option.get_selected_id()
 	_settings["gameplay/tooltip_seconds"] = tooltip_slider.value
+	_settings["gameplay/info_card_tooltip_seconds"] = info_card_tooltip_slider.value
 	_settings["video/window_mode"] = window_mode_option.get_selected_id()
 	_settings["video/vsync"] = vsync_toggle.button_pressed
 	_settings["video/ui_scale"] = ui_scale_slider.value
@@ -140,6 +146,8 @@ func _collect_ui_settings() -> void:
 func _apply_runtime_effects() -> void:
 	var root_window := get_tree().root
 	GameState.set_push_scroll_enabled(bool(_settings["gameplay/push_scroll"]))
+	ProjectSettings.set_setting("gui/timers/tooltip_delay_sec", float(_settings["gameplay/tooltip_seconds"]))
+	ProjectSettings.set_setting("gameplay/info_card_tooltip_delay_sec", float(_settings["gameplay/info_card_tooltip_seconds"]))
 	root_window.mode = int(_settings["video/window_mode"])
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if _settings["video/vsync"] else DisplayServer.VSYNC_DISABLED)
 	root_window.content_scale_factor = float(_settings["video/ui_scale"])
@@ -152,6 +160,7 @@ func _on_slider_changed(_value: float) -> void:
 
 func _refresh_slider_labels() -> void:
 	tooltip_value_label.text = "%.1fs" % tooltip_slider.value
+	info_card_tooltip_value_label.text = "%.1fs" % info_card_tooltip_slider.value
 	ui_scale_value_label.text = "%.0f%%" % (ui_scale_slider.value * 100.0)
 	master_value_label.text = "%.0f%%" % (master_slider.value * 100.0)
 	music_value_label.text = "%.0f%%" % (music_slider.value * 100.0)

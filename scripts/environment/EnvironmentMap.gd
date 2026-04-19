@@ -10,7 +10,8 @@ const SENSOR_FILTER_COLORS := {
 	"velocity": Color(0.72, 0.95, 0.68, 1.0),
 	"gamma": Color(0.96, 0.7, 0.4, 1.0),
 	"gravity": Color(0.62, 0.82, 1.0, 1.0),
-	"acceleration": Color(1.0, 0.74, 0.38, 1.0),
+	"acceleration1": Color(1.0, 0.74, 0.38, 1.0),
+	"acceleration2": Color(1.0, 0.64, 0.28, 1.0),
 }
 
 @export var player_acceleration: float = 260.0
@@ -21,8 +22,10 @@ const SENSOR_FILTER_COLORS := {
 var player_position: Vector2 = Vector2.ZERO
 var player_rotation: float = 0.0
 var player_velocity: Vector2 = Vector2.ZERO
+var player_linear_acceleration: Vector2 = Vector2.ZERO
+var player_angular_velocity: float = 0.0
 var player_sidebar_visible: bool = true
-var _active_sensor_filter: String = "thermal"
+var _enabled_sensor_filters: Array[String] = []
 var _player_spawn_initialized: bool = false
 var _sun_position: Vector2 = Vector2.ZERO
 var _has_sun_position: bool = false
@@ -57,16 +60,24 @@ func get_player_state() -> Dictionary:
 		"position": player_position,
 		"rotation": player_rotation,
 		"velocity": player_velocity,
+		"linear_acceleration": player_linear_acceleration,
+		"linear_acceleration_magnitude": player_linear_acceleration.length(),
+		"angular_velocity": player_angular_velocity,
 		"acceleration": player_acceleration,
 		"sidebar_visible": player_sidebar_visible,
 	}
 
 
-func set_active_sensor_filter(sensor_id: String) -> void:
-	var next_filter := sensor_id.strip_edges()
-	if _active_sensor_filter == next_filter:
+func set_enabled_sensor_filters(sensor_ids: Array[String]) -> void:
+	var next_filters: Array[String] = []
+	for sensor_id in sensor_ids:
+		var normalized := sensor_id.strip_edges()
+		if normalized == "" or next_filters.has(normalized):
+			continue
+		next_filters.append(normalized)
+	if _enabled_sensor_filters == next_filters:
 		return
-	_active_sensor_filter = next_filter
+	_enabled_sensor_filters = next_filters
 	_build_system_objects()
 
 
@@ -98,7 +109,7 @@ func _build_system_objects() -> void:
 				player_position = pos
 				_player_spawn_initialized = true
 			continue
-		if not _passes_active_filter(obj_data):
+		if not _passes_enabled_filters(obj_data):
 			continue
 		objects_layer.add_child(_build_object_visual(obj_data, pos))
 
@@ -119,7 +130,7 @@ func _build_object_visual(obj_data: Dictionary, pos: Vector2) -> Node2D:
 	root.position = pos
 
 	var kind := str(obj_data.get("kind", ""))
-	var signal_strength := _get_signal_strength(obj_data)
+	var signal_strength := _get_combined_signal_strength(obj_data)
 	var filter_tint := _get_filter_tint()
 	var size := 14.0
 	var color := Color(0.75, 0.8, 0.9, 0.85)
@@ -178,11 +189,11 @@ func _build_orbit_visuals(system_objects: Array[Dictionary], sun_position: Vecto
 	for obj_data in system_objects:
 		if str(obj_data.get("kind", "")) != "planet":
 			continue
-		if not _passes_active_filter(obj_data):
+		if not _passes_enabled_filters(obj_data):
 			continue
 		var orbit := Line2D.new()
 		var orbit_radius := sun_position.distance_to(_to_vec2(obj_data.get("map_position", [0.0, 0.0])))
-		var strength := _get_signal_strength(obj_data)
+		var strength := _get_combined_signal_strength(obj_data)
 		orbit.width = 1.35
 		orbit.closed = true
 		orbit.default_color = Color(0.72, 0.82, 0.92, 0.08 + strength * 0.08)
@@ -214,47 +225,79 @@ func _observe_nearby_visible_objects() -> void:
 
 
 func _integrate_player_motion(delta: float) -> void:
+	var previous_rotation := player_rotation
+	var previous_velocity := player_velocity
+	var eff_rotation_speed := DebugVisibilityManager.get_kinematic_override("kine_rotation_speed", player_rotation_speed)
+	var eff_acceleration := DebugVisibilityManager.get_kinematic_override("kine_acceleration", player_acceleration)
+	var eff_max_speed := DebugVisibilityManager.get_kinematic_override("kine_max_speed", player_max_speed)
+	var eff_linear_drag := DebugVisibilityManager.get_kinematic_override("kine_linear_drag", player_linear_drag)
+
 	var rotate_input := float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_A))
-	player_rotation += rotate_input * player_rotation_speed * delta
+	player_rotation += rotate_input * eff_rotation_speed * delta
 
 	var local_accel := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
-	var world_accel := local_accel.rotated(player_rotation) * player_acceleration
+	var world_accel := local_accel.rotated(player_rotation) * eff_acceleration
 	player_velocity += world_accel * delta
-	player_velocity = player_velocity.limit_length(player_max_speed)
-	player_velocity = player_velocity.move_toward(Vector2.ZERO, player_linear_drag * delta)
+	player_velocity = player_velocity.limit_length(eff_max_speed)
+	player_velocity = player_velocity.move_toward(Vector2.ZERO, eff_linear_drag * delta)
 
 	player_position += player_velocity * delta
 	player_position.x = clampf(player_position.x, WORLD_BOUNDS.position.x, WORLD_BOUNDS.end.x)
 	player_position.y = clampf(player_position.y, WORLD_BOUNDS.position.y, WORLD_BOUNDS.end.y)
 
+	var sample_delta := maxf(delta, 0.0001)
+	var rotation_delta := wrapf(player_rotation - previous_rotation, -PI, PI)
+	player_angular_velocity = rotation_delta / sample_delta
+	player_linear_acceleration = (player_velocity - previous_velocity) / sample_delta
 
-func _passes_active_filter(obj_data: Dictionary) -> bool:
-	if _active_sensor_filter == "":
+
+func _passes_enabled_filters(obj_data: Dictionary) -> bool:
+	if _enabled_sensor_filters.is_empty():
 		return true
-	return _get_signal_strength(obj_data) > 0.0
+	for sensor_id in _enabled_sensor_filters:
+		if _get_sensor_signal(obj_data, sensor_id) > 0.0:
+			return true
+	return false
 
 
-func _get_signal_strength(obj_data: Dictionary) -> float:
-	if _active_sensor_filter == "":
+func _get_combined_signal_strength(obj_data: Dictionary) -> float:
+	if _enabled_sensor_filters.is_empty():
 		return 1.0
+	var best_strength := 0.0
+	for sensor_id in _enabled_sensor_filters:
+		best_strength = maxf(best_strength, _get_sensor_signal(obj_data, sensor_id))
+	return best_strength
+
+
+func _get_sensor_signal(obj_data: Dictionary, sensor_id: String) -> float:
 	var observability_profile: Dictionary = obj_data.get("observability_profile", {})
-	if _active_sensor_filter == "velocity":
+	if sensor_id == "velocity":
 		var velocity_signal := float(observability_profile.get("velocity", -1.0))
 		if velocity_signal < 0.0:
 			velocity_signal = maxf(float(observability_profile.get("radio", 0.0)) * 0.65, float(observability_profile.get("gravity", 0.0)) * 0.55)
 		return clampf(velocity_signal, 0.0, 1.0)
-	if _active_sensor_filter == "acceleration":
+	if sensor_id == "acceleration1" or sensor_id == "acceleration2":
 		var acceleration_signal := float(observability_profile.get("acceleration", -1.0))
 		if acceleration_signal < 0.0:
 			acceleration_signal = maxf(float(observability_profile.get("gamma", 0.0)) * 0.55, float(observability_profile.get("gravity", 0.0)) * 0.75)
 		return clampf(acceleration_signal, 0.0, 1.0)
-	return clampf(float(observability_profile.get(_active_sensor_filter, 0.0)), 0.0, 1.0)
+	return clampf(float(observability_profile.get(sensor_id, 0.0)), 0.0, 1.0)
 
 
 func _get_filter_tint() -> Color:
-	if _active_sensor_filter == "":
+	if _enabled_sensor_filters.is_empty():
 		return Color(0.82, 0.88, 0.95, 1.0)
-	return SENSOR_FILTER_COLORS.get(_active_sensor_filter, Color(0.82, 0.88, 0.95, 1.0))
+	var total_weight := 0.0
+	var accum_r := 0.0
+	var accum_g := 0.0
+	var accum_b := 0.0
+	for sensor_id in _enabled_sensor_filters:
+		var tint: Color = SENSOR_FILTER_COLORS.get(sensor_id, Color(0.82, 0.88, 0.95, 1.0))
+		total_weight += 1.0
+		accum_r += tint.r
+		accum_g += tint.g
+		accum_b += tint.b
+	return Color(accum_r / total_weight, accum_g / total_weight, accum_b / total_weight, 1.0)
 
 
 func _to_vec2(value: Variant) -> Vector2:

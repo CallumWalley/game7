@@ -70,7 +70,7 @@ theme_override_constants/separation = 8
 [node name="TooltipLabel" type="Label" parent="Margin/VBox/Tabs/Gameplay/GameplayVBox/TooltipRow"]
 layout_mode = 2
 custom_minimum_size = Vector2(160, 0)
-text = "Hover Card Delay"
+text = "UI Tooltip Delay"
 
 [node name="TooltipSlider" type="HSlider" parent="Margin/VBox/Tabs/Gameplay/GameplayVBox/TooltipRow"]
 layout_mode = 2
@@ -84,6 +84,28 @@ value = 2.0
 layout_mode = 2
 custom_minimum_size = Vector2(72, 0)
 text = "2.0s"
+
+[node name="InfoCardTooltipRow" type="HBoxContainer" parent="Margin/VBox/Tabs/Gameplay/GameplayVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InfoCardTooltipLabel" type="Label" parent="Margin/VBox/Tabs/Gameplay/GameplayVBox/InfoCardTooltipRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(160, 0)
+text = "Info Card Delay"
+
+[node name="InfoCardTooltipSlider" type="HSlider" parent="Margin/VBox/Tabs/Gameplay/GameplayVBox/InfoCardTooltipRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 5.0
+step = 0.1
+value = 0.6
+
+[node name="InfoCardTooltipValue" type="Label" parent="Margin/VBox/Tabs/Gameplay/GameplayVBox/InfoCardTooltipRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(72, 0)
+text = "0.6s"
 
 [node name="Video" type="Control" parent="Margin/VBox/Tabs"]
 layout_mode = 2

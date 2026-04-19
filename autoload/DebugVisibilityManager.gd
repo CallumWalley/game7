@@ -5,11 +5,11 @@ extends Node
 signal visibility_changed(feature: String, visible: bool)
 signal debug_mode_changed(enabled: bool)
 signal option_changed(option: String, value: bool)
+signal sensor_level_changed(sensor_id: String, level: int)
+signal kinematic_override_changed(param_id: String, value: float)
 
 const OPTION_SHOW_DEBUG_WINDOW: String = "show_debug_window"
-const OPTION_DEBUG_LOG_FOOD_TICKS: String = "debug_log_food_ticks"
 const OPTION_BODY_HOVER_STATS: String = "body_hover_stats"
-const OPTION_DEBUG_ADI_STATS: String = "debug_adi_stats"
 
 ## Tracks which UI features are visible
 var _visibility_state: Dictionary = {
@@ -21,6 +21,8 @@ var _visibility_state: Dictionary = {
 	"worker_list": true,
 	"speed_10_visible": true,
 	"speed_100_visible": true,
+	"pause_visible": true,
+	"cycle_counter": true,
 	"env_sidebar": true,
 }
 
@@ -34,15 +36,16 @@ var _encountered_types: Dictionary = {
 ## Tracks which resource types have been encountered
 var _encountered_resources: Dictionary = {}
 
-## Debug overrides for sensor visibility (independent of GameState tier)
-var _debug_sensor_overrides: Dictionary = {}
+## Debug overrides for sensor levels (independent of GameState tier progression).
+var _debug_sensor_levels: Dictionary = {}
+
+## Debug overrides for ship kinematic parameters.
+var _kinematic_overrides: Dictionary = {}
 
 var _debug_mode_enabled: bool = false
 var _debug_options: Dictionary = {
 	OPTION_SHOW_DEBUG_WINDOW: true,
-	OPTION_DEBUG_LOG_FOOD_TICKS: false,
 	OPTION_BODY_HOVER_STATS: true,
-	OPTION_DEBUG_ADI_STATS: false,
 }
 
 func _ready() -> void:
@@ -51,7 +54,6 @@ func _ready() -> void:
 	}
 	_debug_mode_enabled = OS.has_feature("debug")
 	_debug_options[OPTION_SHOW_DEBUG_WINDOW] = _debug_mode_enabled
-	_debug_options[OPTION_DEBUG_LOG_FOOD_TICKS] = GameState.debug_log_food_ticks
 	if OS.has_feature("debug"):
 		print("DebugVisibilityManager initialized")
 
@@ -92,7 +94,6 @@ func set_option(option: String, value: bool) -> void:
 	if _debug_options[option] == value:
 		return
 	_debug_options[option] = value
-	_match_option_to_system(option, value)
 	option_changed.emit(option, value)
 
 
@@ -106,11 +107,6 @@ func get_option(option: String) -> bool:
 
 func get_debug_options() -> Dictionary:
 	return _debug_options.duplicate()
-
-
-func _match_option_to_system(option: String, value: bool) -> void:
-	if option == OPTION_DEBUG_LOG_FOOD_TICKS:
-		GameState.debug_log_food_ticks = value
 
 
 func set_visibility(feature: String, visible: bool) -> void:
@@ -182,13 +178,47 @@ func get_encountered_resources() -> Dictionary:
 	return _encountered_resources.duplicate()
 
 
+func get_sensor_level(sensor_id: String) -> int:
+	return maxi(int(_debug_sensor_levels.get(sensor_id, 0)), 0)
+
+
+func set_sensor_level(sensor_id: String, level: int) -> void:
+	var next_level := maxi(level, 0)
+	if get_sensor_level(sensor_id) == next_level:
+		return
+	if next_level == 0:
+		_debug_sensor_levels.erase(sensor_id)
+	else:
+		_debug_sensor_levels[sensor_id] = next_level
+	sensor_level_changed.emit(sensor_id, next_level)
+
+
+func get_sensor_levels() -> Dictionary:
+	return _debug_sensor_levels.duplicate()
+
+
+func get_kinematic_override(param_id: String, default_value: float) -> float:
+	if _kinematic_overrides.has(param_id):
+		return float(_kinematic_overrides[param_id])
+	return default_value
+
+
+func set_kinematic_override(param_id: String, value: float) -> void:
+	_kinematic_overrides[param_id] = value
+	kinematic_override_changed.emit(param_id, value)
+
+
+func clear_kinematic_override(param_id: String) -> void:
+	_kinematic_overrides.erase(param_id)
+	kinematic_override_changed.emit(param_id, 0.0)
+
+
 func get_sensor_visible(sensor_id: String) -> bool:
-	return _debug_sensor_overrides.get(sensor_id, false)
+	return get_sensor_level(sensor_id) > 0
 
 
 func set_sensor_visible(sensor_id: String, value: bool) -> void:
-	_debug_sensor_overrides[sensor_id] = value
-	visibility_changed.emit("sensor_%s" % sensor_id, value)
+	set_sensor_level(sensor_id, 1 if value else 0)
 
 
 func reset_all_visibility() -> void:
@@ -202,6 +232,8 @@ func reset_all_visibility() -> void:
 		"worker_list": true,
 		"speed_10_visible": true,
 		"speed_100_visible": true,
+		"pause_visible": true,
+		"cycle_counter": true,
 		"env_sidebar": true,
 	}
 	_encountered_types = {
@@ -212,6 +244,9 @@ func reset_all_visibility() -> void:
 	_encountered_resources = {
 		GameState.RESOURCE_TYPE_FOOD: false,
 	}
-	_debug_sensor_overrides = {}
-	set_option(OPTION_DEBUG_LOG_FOOD_TICKS, false)
+	var previous_sensor_levels := _debug_sensor_levels.duplicate()
+	_debug_sensor_levels = {}
+	for sensor_id in previous_sensor_levels.keys():
+		sensor_level_changed.emit(str(sensor_id), 0)
+	_kinematic_overrides = {}
 	set_option(OPTION_BODY_HOVER_STATS, true)

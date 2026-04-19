@@ -8,6 +8,9 @@ var entries: Array[Dictionary] = []
 var visible_entries: Array[Dictionary] = []
 const TYPEWRITER_SPEED: float = 40.0
 const UNREAD_COLOR: Color = Color(1.0, 0.82, 0.3, 1.0)
+## Color for interactive / unseen elements (thought divergence prompts, unread indicators).
+const INTERACTIVE_COLOR: Color = Color(1.0, 0.82, 0.3, 1.0)
+const INTERACTIVE_BG_COLOR: Color = Color(0.20, 0.16, 0.04, 1.0)
 const THOUGHT_DIVERGENCE_PLACEHOLDER := "?????"
 var _awaiting_var_selection: bool = false
 var _typewriter_active: bool = false
@@ -28,6 +31,7 @@ func _ready() -> void:
 	entry_list.item_selected.connect(_on_entry_selected)
 	GameState.state_changed.connect(_refresh_entries)
 	entry_text.meta_clicked.connect(_on_entry_text_meta_clicked)
+	entry_text.gui_input.connect(_on_entry_text_gui_input)
 	EventBus.component_memory_state_changed.connect(_on_component_memory_state_changed)
 	_refresh_entries()
 
@@ -45,6 +49,34 @@ func _process(delta: float) -> void:
 		if not _awaiting_var_selection:
 			GameState.mark_memory_read(_typewriter_entry_id)
 			_update_list_item_read_state(_typewriter_entry_id)
+
+
+func _on_entry_text_gui_input(event: InputEvent) -> void:
+	if not _typewriter_active:
+		return
+	if not (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+		return
+	_skip_typewriter_to_next_sentence()
+
+
+func _skip_typewriter_to_next_sentence() -> void:
+	var plain := entry_text.get_parsed_text()
+	var current := entry_text.visible_characters
+	var next_pos := -1
+	for i in range(current, plain.length()):
+		if plain[i] in [".", "?", "!"]:
+			next_pos = i + 1
+			break
+	if next_pos < 0 or next_pos >= _typewriter_target:
+		entry_text.visible_characters = _typewriter_target
+		_typewriter_elapsed = float(_typewriter_target) / TYPEWRITER_SPEED
+		_typewriter_active = false
+		if not _awaiting_var_selection:
+			GameState.mark_memory_read(_typewriter_entry_id)
+			_update_list_item_read_state(_typewriter_entry_id)
+	else:
+		entry_text.visible_characters = next_pos
+		_typewriter_elapsed = float(next_pos) / TYPEWRITER_SPEED
 
 
 func _load_entries() -> void:
@@ -206,7 +238,12 @@ func _build_thought_divergence_placeholder(divergence_id: String, options: Array
 		"thought_divergence_id": divergence_id,
 		"options": option_values,
 	}
-	return "[url=td:%s]%s[/url]" % [token, THOUGHT_DIVERGENCE_PLACEHOLDER]
+	return "[url=td:%s][bgcolor=#%s][color=#%s]  %s  [/color][/bgcolor][/url]" % [
+		token,
+		INTERACTIVE_BG_COLOR.to_html(false),
+		INTERACTIVE_COLOR.to_html(false),
+		THOUGHT_DIVERGENCE_PLACEHOLDER,
+	]
 
 
 func _on_entry_text_meta_clicked(meta: Variant) -> void:

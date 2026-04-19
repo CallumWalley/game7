@@ -87,6 +87,8 @@ func set_enabled(value: bool) -> void:
 	if is_enabled == value:
 		return
 	is_enabled = value
+	if not is_enabled and allows_worker_assignment():
+		GameState.clear_workers_from_target(get_worker_target_id())
 	enabled_changed.emit(value)
 	GameState.state_changed.emit()
 	update_activation_from_workers()
@@ -95,9 +97,9 @@ func set_enabled(value: bool) -> void:
 func update_activation_from_workers() -> bool:
 	var active := false
 	if allows_worker_assignment():
-		active = is_enabled and GameState.get_target_total_power(get_worker_target_id()) >= required_power and is_connected_to_player_node()
+		active = is_enabled and GameState.get_target_total_power(get_worker_target_id()) >= required_power and is_connected_to_source_node()
 	else:
-		active = is_enabled and is_connected_to_player_node()
+		active = is_enabled and is_connected_to_source_node()
 	if active != is_activated:
 		is_activated = active
 		controlling_entity = GameState.ENTITY_PLAYER if active else GameState.ENTITY_NONE

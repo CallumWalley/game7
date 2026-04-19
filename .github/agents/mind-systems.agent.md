@@ -2,7 +2,6 @@
 name: Mind Systems
 description: "Use when implementing or tuning mind mechanics: memories, player progression, codex or journal behavior, unlock rules, unread or read states, runtime entries, or general in-game record keeping. Do not use for pure narrative copy-editing, UI-only signal tuning, or cross-system orchestration."
 tools: [read, edit, search, execute]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the mind-system behavior, progression rules, or record-keeping change"
 user-invocable: true
 ---

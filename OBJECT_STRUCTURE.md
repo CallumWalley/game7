@@ -75,7 +75,7 @@ Body map layout and links are authored directly in scenes (`BodyMap.tscn`) via `
   - preferred type + multiplier support
   - requires link connection to player node
   - activates at required power and produces glucose per cycle
-  - production scales by cosine of angle between tissue-facing direction and sun direction
+  - production scales by tissue-facing alignment to the sun and current ship-sun distance
   - location authored per component as `forward`/`aft`/`port`/`starboard` with optional secondary side for diagonals
 
 ### `GameState` sunlight model
@@ -83,8 +83,15 @@ Body map layout and links are authored directly in scenes (`BodyMap.tscn`) via `
   - `ship_rotation_radians`
   - `ship_rotational_velocity_per_cycle`
   - `sun_world_angle_radians`
+- Exposes global tuning for solar production response:
+  - `starting_ship_rotation_rpm`
+  - `sun_exposure_alignment_power`
+  - `sun_exposure_reference_distance`
+  - `sun_exposure_distance_power`
+  - `sun_exposure_min_distance_factor`
+  - `sun_exposure_max_distance_factor`
 - `sun_world_angle_radians` is derived from Environment map positions (ship position -> sun position vector).
-- Advances ship rotation once per cycle and provides `get_surface_sun_factor(...)` for component output scaling.
+- Advances ship rotation once per cycle and provides `get_surface_sun_factor(...)` for component output scaling from alignment and distance.
 
 ### `LinksLayer`
 - Extends: `Node2D`
@@ -125,8 +132,8 @@ Worker capacity consistency:
 
 ### Environment
 - `ObservationSystem` is SSOT for environment object definitions (`data/environment_objects.json`) and sensor-gated observability.
-- `EnvironmentMap` (`scenes/environment/EnvironmentMap.tscn`, `scripts/environment/EnvironmentMap.gd`) builds only progression-visible `system0` objects from shared data, owns player movement state (`position`, `rotation`, `velocity`, `acceleration`), renders orbit lines for visible planets, and auto-observes nearby visible objects.
-- `EnvironmentView` camera uses player state each frame to keep a player-centered, fixed-orientation perspective while the sidebar exposes only unlocked sensor filters.
+- `EnvironmentMap` (`scenes/environment/EnvironmentMap.tscn`, `scripts/environment/EnvironmentMap.gd`) builds only progression-visible `system0` objects from shared data, owns player movement state (`position`, `rotation`, `velocity`) plus derived motion telemetry (`angular_velocity`, `linear_acceleration`), renders orbit lines for visible planets, and auto-observes nearby visible objects.
+- `EnvironmentView` camera uses player state each frame to keep a player-centered, fixed-orientation perspective while the sidebar exposes only unlocked sensor filters, drives a screen-edge g-force overlay from map telemetry, renders thermal directional edge cues from visible thermal sources, and shows center-screen acceleration telemetry for rotation plus x/y acceleration.
 - Canonical environment sensor channels are `light_heat`, `radio`, `velocity`, `gamma`, `gravity`, and `acceleration`.
 
 ## Shared UI helpers

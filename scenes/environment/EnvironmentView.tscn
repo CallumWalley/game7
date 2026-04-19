@@ -3,8 +3,14 @@
 [ext_resource type="Script" uid="uid://tfynpo54whfx" path="res://scripts/environment/EnvironmentView.gd" id="1_env_script"]
 [ext_resource type="PackedScene" path="res://scenes/environment/EnvironmentMap.tscn" id="2_env_map"]
 [ext_resource type="PackedScene" path="res://scenes/common/HoverInfoCard.tscn" id="3_hover_card"]
+[ext_resource type="Shader" path="res://shaders/environment_gforce.gdshader" id="4_gforce_shader"]
+[ext_resource type="Shader" path="res://shaders/environment_thermal_directional.gdshader" id="5_thermal_shader"]
+[ext_resource type="Script" path="res://scripts/environment/AccelerationTelemetryDisplay.gd" id="6_accel_display"]
 
-[sub_resource type="ButtonGroup" id="ButtonGroup_filters"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_thermal"]
+shader = ExtResource("5_thermal_shader")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gforce"]
+shader = ExtResource("4_gforce_shader")
 
 [node name="EnvironmentView" type="Control" unique_id=1621776152]
 layout_mode = 3
@@ -57,6 +63,38 @@ render_target_update_mode = 4
 layout_mode = 2
 mouse_filter = 2
 
+[node name="ThermalOverlay" type="ColorRect" parent="Root/MapArea/Overlay" unique_id=82222157]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_thermal")
+color = Color(1, 1, 1, 0)
+
+[node name="GForceOverlay" type="ColorRect" parent="Root/MapArea/Overlay" unique_id=2039945101]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+material = SubResource("ShaderMaterial_gforce")
+color = Color(1, 1, 1, 0)
+
+[node name="AccelerationDisplay" type="Control" parent="Root/MapArea/Overlay" unique_id=864530147]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("6_accel_display")
+
 [node name="HoverCard" parent="Root/MapArea/Overlay" unique_id=2136292215 instance=ExtResource("3_hover_card")]
 
 [node name="Sidebar" type="VBoxContainer" parent="Root" unique_id=709259793]
@@ -72,30 +110,28 @@ theme_override_constants/separation = 6
 [node name="ThermalToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1877300193]
 layout_mode = 2
 button_pressed = true
-button_group = SubResource("ButtonGroup_filters")
 text = "Thermal"
 
 [node name="RadioToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=599920869]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_filters")
 text = "Radio"
 
 [node name="VelocityToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1956229772]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_filters")
 text = "Velocity"
 
 [node name="GammaToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1450283312]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_filters")
 text = "Gamma"
 
 [node name="GravityToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1500829688]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_filters")
 text = "Gravity"
 
-[node name="AccelerationToggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1845421101]
+[node name="Acceleration1Toggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1845421101]
 layout_mode = 2
-button_group = SubResource("ButtonGroup_filters")
-text = "Acceleration"
+text = "G-Force"
+
+[node name="Acceleration2Toggle" type="CheckBox" parent="Root/Sidebar/Sensors" unique_id=1845421102]
+layout_mode = 2
+text = "Motion"

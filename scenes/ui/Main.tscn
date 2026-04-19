@@ -43,81 +43,98 @@ theme_override_constants/margin_bottom = 4
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="ResourceLabel" type="Label" parent="VBox/TopBar/Margin/HBox"]
+[node name="LeftZone" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="ResourceLabel" type="Label" parent="VBox/TopBar/Margin/HBox/LeftZone"]
+layout_mode = 2
 text = "Food 0.0 | -0.0/tick"
 
-[node name="KeyStrip" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox"]
+[node name="CenterZone" type="CenterContainer" parent="VBox/TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="KeyStrip" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/CenterZone"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="NeuronGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/KeyStrip"]
+[node name="NeuronGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/NeuronGroup"]
+[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/NeuronGroup"]
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 script = ExtResource("6_type_icon")
 
-[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/KeyStrip/NeuronGroup"]
+[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/NeuronGroup"]
 layout_mode = 2
 text = "0/0"
 
-[node name="ArithmeticGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/KeyStrip"]
+[node name="ArithmeticGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/ArithmeticGroup"]
+[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/ArithmeticGroup"]
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 script = ExtResource("6_type_icon")
 node_type = "arithmetic_processor"
 
-[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/KeyStrip/ArithmeticGroup"]
+[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/ArithmeticGroup"]
 layout_mode = 2
 text = "0/0"
 
-[node name="QuantumGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/KeyStrip"]
+[node name="QuantumGroup" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/KeyStrip/QuantumGroup"]
+[node name="Icon" type="Control" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/QuantumGroup"]
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 script = ExtResource("6_type_icon")
 node_type = "quantum_calculator"
 
-[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/KeyStrip/QuantumGroup"]
+[node name="Count" type="Label" parent="VBox/TopBar/Margin/HBox/CenterZone/KeyStrip/QuantumGroup"]
 layout_mode = 2
 text = "0/0"
 
-[node name="TimeControls" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox"]
+[node name="RightZone" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="TimeControls" type="HBoxContainer" parent="VBox/TopBar/Margin/HBox/RightZone"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="PauseButton" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
+[node name="PauseButton" type="Button" parent="VBox/TopBar/Margin/HBox/RightZone/TimeControls"]
 layout_mode = 2
+toggle_mode = true
 text = "Pause"
 
-[node name="NextButton" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
+[node name="NextButton" type="Button" parent="VBox/TopBar/Margin/HBox/RightZone/TimeControls"]
 layout_mode = 2
 text = "Next"
 
-[node name="Speed1Button" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
+[node name="Speed1Button" type="Button" parent="VBox/TopBar/Margin/HBox/RightZone/TimeControls"]
 layout_mode = 2
+toggle_mode = true
+button_pressed = true
 text = "1x"
 
-[node name="Speed10Button" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
+[node name="Speed10Button" type="Button" parent="VBox/TopBar/Margin/HBox/RightZone/TimeControls"]
 layout_mode = 2
+toggle_mode = true
 text = "10x"
 
-[node name="Speed100Button" type="Button" parent="VBox/TopBar/Margin/HBox/TimeControls"]
+[node name="Speed100Button" type="Button" parent="VBox/TopBar/Margin/HBox/RightZone/TimeControls"]
 layout_mode = 2
+toggle_mode = true
 text = "100x"
 
-[node name="CycleLabel" type="Label" parent="VBox/TopBar/Margin/HBox"]
+[node name="CycleLabel" type="Label" parent="VBox/TopBar/Margin/HBox/RightZone/TimeControls"]
 layout_mode = 2
 text = "Cycle 0"
 

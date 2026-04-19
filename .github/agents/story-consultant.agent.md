@@ -2,7 +2,6 @@
 name: Story Consultant
 description: "Use when tracking story beats, maintaining narrative consistency, preserving tone, validating terminology, naming nodes or memories, or reviewing flavor text against the project's voice and progression. Do not use for mechanical balancing, system architecture refactors, or UI-only layout work."
 tools: [read, edit, search, execute]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the narrative beat, terminology question, naming problem, or text to align"
 user-invocable: true
 ---

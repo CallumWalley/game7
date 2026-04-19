@@ -19,7 +19,7 @@ static func evaluate(condition: Variant) -> bool:
 		"memory_unlocked":
 			return GameState.unlocked_memories.has(str(c.get("id", "")))
 		"sensor_unlocked":
-			return GameState.get_sensor_tier(str(c.get("id", ""))) > 0
+			return GameState.get_effective_sensor_tier(str(c.get("id", ""))) > 0
 		"observation_seen":
 			return GameState.observed_environment.has(str(c.get("id", "")))
 		"min_cycle":

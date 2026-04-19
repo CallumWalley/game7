@@ -8,21 +8,23 @@ var _toggle_buttons: Dictionary = {}
 var _type_buttons: Dictionary = {}
 var _resource_buttons: Dictionary = {}
 var _option_buttons: Dictionary = {}
-var _sensor_buttons: Dictionary = {}
+var _sensor_level_boxes: Dictionary = {}
+var _kinematic_boxes: Dictionary = {}
 var _dragging: bool = false
 var _drag_start_mouse: Vector2 = Vector2.ZERO
 var _drag_start_pos: Vector2 = Vector2.ZERO
 
 const INDENT_PX: int = 14
 const HANDLE_HEIGHT: float = 18.0
-const SENSOR_IDS: Array[String] = ["thermal", "radio", "velocity", "gamma", "gravity", "acceleration"]
+const SENSOR_IDS: Array[String] = ["thermal", "radio", "velocity", "gamma", "gravity", "acceleration1", "acceleration2"]
 const SENSOR_LABELS := {
 	"thermal": "Thermal",
 	"radio": "Radio",
 	"velocity": "Velocity",
 	"gamma": "Gamma",
 	"gravity": "Gravity",
-	"acceleration": "Acceleration",
+	"acceleration1": "G-Force",
+	"acceleration2": "Motion",
 }
 
 
@@ -31,6 +33,8 @@ func _ready() -> void:
 	DebugVisibilityManager.visibility_changed.connect(_on_visibility_changed)
 	DebugVisibilityManager.debug_mode_changed.connect(_on_debug_mode_changed)
 	DebugVisibilityManager.option_changed.connect(_on_option_changed)
+	DebugVisibilityManager.sensor_level_changed.connect(_on_sensor_level_changed)
+	DebugVisibilityManager.kinematic_override_changed.connect(_on_kinematic_override_changed)
 	container.gui_input.connect(_on_container_gui_input)
 	container.position = Vector2(12, 12)
 	container.custom_minimum_size = Vector2(260, 0)
@@ -44,7 +48,8 @@ func _build_panel() -> void:
 	_type_buttons.clear()
 	_resource_buttons.clear()
 	_option_buttons.clear()
-	_sensor_buttons.clear()
+	_sensor_level_boxes.clear()
+	_kinematic_boxes.clear()
 
 	# Drag handle — the draggable top strip
 	var handle := Label.new()
@@ -100,6 +105,16 @@ func _build_panel() -> void:
 		func(v: bool): DebugVisibilityManager.set_visibility("speed_100_visible", v),
 		"speed_100_visible", _toggle_buttons
 	)
+	_add_leaf(time_children, "Pause + x1 button", INDENT_PX * 2,
+		DebugVisibilityManager.is_visible("pause_visible"),
+		func(v: bool): DebugVisibilityManager.set_visibility("pause_visible", v),
+		"pause_visible", _toggle_buttons
+	)
+	_add_leaf(time_children, "Cycle counter", INDENT_PX * 2,
+		DebugVisibilityManager.is_visible("cycle_counter"),
+		func(v: bool): DebugVisibilityManager.set_visibility("cycle_counter", v),
+		"cycle_counter", _toggle_buttons
+	)
 
 	vbox.add_child(HSeparator.new())
 
@@ -121,25 +136,22 @@ func _build_panel() -> void:
 		"env_sidebar", _toggle_buttons
 	)
 	for sensor_id in SENSOR_IDS:
-		_add_leaf(env_children, SENSOR_LABELS.get(sensor_id, sensor_id.capitalize()), INDENT_PX,
-			DebugVisibilityManager.get_sensor_visible(sensor_id),
-			func(v: bool): DebugVisibilityManager.set_sensor_visible(sensor_id, v),
-			sensor_id, _sensor_buttons
-		)
+		_add_sensor_level_leaf(env_children, SENSOR_LABELS.get(sensor_id, sensor_id.capitalize()), INDENT_PX,
+			DebugVisibilityManager.get_sensor_level(sensor_id), sensor_id)
 
-	vbox.add_child(HSeparator.new())
-
-	# Extra dev options
-	_add_leaf(vbox, "Log food ticks", 0,
-		DebugVisibilityManager.get_option(DebugVisibilityManager.OPTION_DEBUG_LOG_FOOD_TICKS),
-		func(v: bool): DebugVisibilityManager.set_option(DebugVisibilityManager.OPTION_DEBUG_LOG_FOOD_TICKS, v),
-		DebugVisibilityManager.OPTION_DEBUG_LOG_FOOD_TICKS, _option_buttons
-	)
-	_add_leaf(vbox, "ADI glucose stats", 0,
-		DebugVisibilityManager.get_option(DebugVisibilityManager.OPTION_DEBUG_ADI_STATS),
-		func(v: bool): DebugVisibilityManager.set_option(DebugVisibilityManager.OPTION_DEBUG_ADI_STATS, v),
-		DebugVisibilityManager.OPTION_DEBUG_ADI_STATS, _option_buttons
-	)
+	var kine_children := _add_section(env_children, "Ship Kinematics", "", INDENT_PX)
+	_add_kinematic_leaf(kine_children, "Thrust", INDENT_PX * 2,
+		DebugVisibilityManager.get_kinematic_override("kine_acceleration", 260.0),
+		"kine_acceleration", 10.0, 2000.0, 10.0)
+	_add_kinematic_leaf(kine_children, "Rot. Speed", INDENT_PX * 2,
+		DebugVisibilityManager.get_kinematic_override("kine_rotation_speed", 2.4),
+		"kine_rotation_speed", 0.1, 10.0, 0.1)
+	_add_kinematic_leaf(kine_children, "Max Speed", INDENT_PX * 2,
+		DebugVisibilityManager.get_kinematic_override("kine_max_speed", 420.0),
+		"kine_max_speed", 50.0, 2000.0, 10.0)
+	_add_kinematic_leaf(kine_children, "Linear Drag", INDENT_PX * 2,
+		DebugVisibilityManager.get_kinematic_override("kine_linear_drag", 110.0),
+		"kine_linear_drag", 0.0, 500.0, 5.0)
 
 	vbox.add_child(HSeparator.new())
 
@@ -231,10 +243,6 @@ func _on_visibility_changed(feature: String, feature_visible: bool) -> void:
 		var resource_type := feature.trim_prefix("resource_type_")
 		if resource_type in _resource_buttons:
 			_resource_buttons[resource_type].button_pressed = feature_visible
-	elif feature.begins_with("sensor_"):
-		var sensor_id := feature.trim_prefix("sensor_")
-		if sensor_id in _sensor_buttons:
-			_sensor_buttons[sensor_id].button_pressed = feature_visible
 	elif feature in _toggle_buttons:
 		_toggle_buttons[feature].button_pressed = feature_visible
 
@@ -246,6 +254,16 @@ func _on_debug_mode_changed(enabled: bool) -> void:
 func _on_option_changed(option: String, value: bool) -> void:
 	if option in _option_buttons:
 		_option_buttons[option].button_pressed = value
+
+
+func _on_sensor_level_changed(sensor_id: String, level: int) -> void:
+	if sensor_id in _sensor_level_boxes:
+		_sensor_level_boxes[sensor_id].set_value_no_signal(level)
+
+
+func _on_kinematic_override_changed(param_id: String, value: float) -> void:
+	if param_id in _kinematic_boxes:
+		_kinematic_boxes[param_id].set_value_no_signal(value)
 
 
 func _on_container_gui_input(event: InputEvent) -> void:
@@ -261,3 +279,61 @@ func _on_container_gui_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion and _dragging:
 		var delta := get_viewport().get_mouse_position() - _drag_start_mouse
 		container.position = _drag_start_pos + delta
+
+
+func _add_kinematic_leaf(parent: VBoxContainer, label_text: String, indent_px: int, value: float, param_id: String, min_val: float, max_val: float, step: float) -> void:
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 4)
+
+	if indent_px > 0:
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(indent_px, 0)
+		spacer.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		hbox.add_child(spacer)
+
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(lbl)
+
+	var spin := SpinBox.new()
+	spin.min_value = min_val
+	spin.max_value = max_val
+	spin.step = step
+	spin.rounded = false
+	spin.custom_minimum_size = Vector2(88, 0)
+	spin.value = value
+	spin.value_changed.connect(func(v: float): DebugVisibilityManager.set_kinematic_override(param_id, v))
+	hbox.add_child(spin)
+
+	parent.add_child(hbox)
+	_kinematic_boxes[param_id] = spin
+
+
+func _add_sensor_level_leaf(parent: VBoxContainer, label_text: String, indent_px: int, level: int, sensor_id: String) -> void:
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 4)
+
+	if indent_px > 0:
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(indent_px, 0)
+		spacer.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		hbox.add_child(spacer)
+
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox.add_child(lbl)
+
+	var level_box := SpinBox.new()
+	level_box.min_value = 0
+	level_box.max_value = 9
+	level_box.step = 1
+	level_box.rounded = true
+	level_box.custom_minimum_size = Vector2(72, 0)
+	level_box.value = level
+	level_box.value_changed.connect(func(v: float): DebugVisibilityManager.set_sensor_level(sensor_id, int(v)))
+	hbox.add_child(level_box)
+
+	parent.add_child(hbox)
+	_sensor_level_boxes[sensor_id] = level_box

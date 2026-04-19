@@ -2,7 +2,6 @@
 name: Visual Effects
 description: "Use when implementing or tuning visual effects: shaders, polygon animations, particle systems, glow and pulse effects, fog-of-war, capture progress visuals, node fill patterns, link shimmer, or any canvas_item shader work. Do not use when the task is purely gameplay logic, UI layout hierarchy, story text, or system data flow with no visual component."
 tools: [read, edit, search, execute, web]
-model: "GPT-5 (copilot)"
 argument-hint: "Describe the visual effect, shader uniform, animation behavior, or presentation polish to implement or tune"
 user-invocable: true
 ---

@@ -136,13 +136,14 @@ func _inactive_fill_secondary() -> Color:
 
 ## Override: ADI activates from manual enabled state + connection, not worker power.
 func update_activation_from_workers() -> bool:
-	var active := is_enabled and is_connected_to_player_node()
+	var active := is_enabled and is_connected_to_source_node()
 	var was_active := is_activated
 	if active != is_activated:
 		is_activated = active
 		controlling_entity = GameState.ENTITY_PLAYER if active else GameState.ENTITY_NONE
 		if is_activated:
-			ProgressionSystem.report_component_controlled(self)
+			if not Engine.is_editor_hint():
+				ProgressionSystem.report_component_controlled(self)
 		activation_changed.emit(is_activated)
 		_animate_color_transition(was_active, is_activated)
 	else:

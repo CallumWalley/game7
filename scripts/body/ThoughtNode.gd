@@ -21,6 +21,10 @@ enum ControllingEntity {
 ## Start nodes use the player color as their innate tint.
 @export var startNode: bool = false
 
+## Connectivity root. All nodes/components must route through active player-owned
+## nodes back to a source node to be enabled or activated.
+@export var is_source_node: bool = false
+
 ## Disabled nodes do not consume full resources.
 @export var is_enabled: bool = true
 
@@ -446,7 +450,7 @@ func is_in_coma() -> bool:
 
 
 func can_player_enable() -> bool:
-    return true
+    return is_connected_to_source_node()
 
 
 func get_link_display_color() -> Color:
